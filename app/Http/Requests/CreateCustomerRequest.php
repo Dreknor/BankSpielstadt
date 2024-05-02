@@ -11,7 +11,7 @@ class CreateCustomerRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return auth()->check() and auth()->user()->is_manager;
 
@@ -22,7 +22,7 @@ class CreateCustomerRequest extends FormRequest
      *
      * @return array<string, mixed>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'name' => ['required','string'],

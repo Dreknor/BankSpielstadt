@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -16,26 +16,24 @@ class Customer extends Model
     protected $visible = ['id','name', 'buisness', 'startkapital', 'kredit','key','export'];
 
 
-
-    public function payments(){
-        return $this->hasMany(Payment::class);
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'customer_id');
     }
 
-    public function getBalanceAttribute(){
-        return $this->payments()->sum('amount');
-    }
-
-    public function working_times(){
+    public function working_times(): HasMany
+    {
         return $this->hasMany(WorkingTime::class);
     }
 
-    public function worker(){
+    public function worker(): HasMany
+    {
         return $this->hasMany(WorkingTime::class, 'buisness_id');
     }
 
-    public function is_buisness()
+    public function is_buisness(): bool
     {
-        return ($this->buisness == 1)? true : false;
+        return $this->buisness == 1;
     }
 
     public function daily_balance($day = null)
@@ -51,18 +49,26 @@ class Customer extends Model
 
     }
 
+    public function getBalanceAttribute()
+    {
+        return $this->payments()
+                ->sum('amount');
+    }
+
+
+
     /**
      * Scope a query to only include buissnes customers.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param Builder $query
      * @return void
      */
-    public function scopeBuisness($query)
+    public function scopeBuisness(Builder $query): void
     {
         $query->where('buisness', 1);
     }
 
-    protected static function booted()
+    protected static function booted(): void
     {
         static::addGlobalScope('sorted', function (Builder $builder) {
             $builder->orderBy('name');

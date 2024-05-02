@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\KontostandController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\WorkingTimeController;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Auth::routes(['register' => true]);
+
+Route::get('/kontostand', [KontostandController::class, 'kontostand'])->name('kontostand');
+Route::post('/kontostand/show', [KontostandController::class, 'auth'])->name('kontostand.read_key');
 
 Route::middleware(['auth'])->group(function (){
 
