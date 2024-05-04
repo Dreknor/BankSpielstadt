@@ -17,6 +17,38 @@ class CustomerController extends Controller
         return view('customer.create');
     }
 
+    public function setKey(Request $request){
+
+       $customer = session('customer');
+        if($customer == null){
+            return redirect()->back()->with([
+                'type'=>'danger',
+                'Meldung'=> 'Kunde nicht gefunden.'
+            ]);
+        }
+
+        if($customer->key != null){
+            return redirect()->back()->with([
+                'type'=>'danger',
+                'Meldung'=> 'Bereits ein Schlüssel angemeldet.'
+            ]);
+        }
+
+        $request->validate([
+            'key' => 'required|string|min:8'
+        ]);
+
+        $customer->update([
+            'key' => $request->key
+        ]);
+
+        return redirect(url('/'))->with([
+            'type'=>'success',
+            'Meldung'=> 'Schlüssel wurde gespeichert.'
+        ]);
+    }
+
+
     public function store(CreateCustomerRequest $request){
         $newCustomer = new Customer($request->validated());
         $newCustomer->startkapital = ($request->startkapital) ? $request->startkapital : config('bank.startkapital');

@@ -16,5 +16,9 @@ return [
     'gewinn_steuer' => 10, //%
 
     //Zinsen Kredit
-    'zinsen'    => 10
+    'zinsen'    => 10,
+
+    'kontostand' => [
+        'logout' => 15
+    ]
     ];

@@ -44,8 +44,6 @@ Route::middleware(['auth'])->group(function (){
         Route::get('export', [AdminController::class, 'export']);
         Route::get('deleteStart', [AdminController::class, 'delete']);
         Route::get('start', [AdminController::class, 'makeStartkapital']);
-
-
     });
 
     Route::middleware(['hasCustomer'])->group(function (){
@@ -54,6 +52,7 @@ Route::middleware(['auth'])->group(function (){
         Route::delete('payments/delete/{payment}', [PaymentController::class, 'delete']);
         Route::delete('working_times/delete/{working_time}', [WorkingTimeController::class, 'destroy']);
 
+        Route::post('set/key', [CustomerController::class, 'setKey'])->name('set.key');
 
         Route::get('/', [HomeController::class, 'index'])->name('home');
         Route::get('/home', [HomeController::class, 'index'])->name('home');

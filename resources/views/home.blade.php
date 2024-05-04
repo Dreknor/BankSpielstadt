@@ -27,6 +27,30 @@
                     </div>
 
                 </div>
+
+                @if(!session('customer')->is_buisness() and (!session('customer')->key or session('customer')->key = null ))
+                    <div class="card-body">
+                        <div class="alert alert-danger">
+                            <h3>
+                                Bitte geben Sie den Key ein
+                            </h3>
+                        </div>
+                        <form method="post" action="{{url('set/key')}}">
+                            @csrf
+                            <div class="row mt-2">
+                                <label>
+                                    Key-Nummer
+                                    <input class="form-control w-100" name="key" type="text" autofocus>
+                                </label>
+                            </div>
+                            <div class="row mt-2">
+                                <button type="submit" class="btn btn-success">speichern</button>
+                            </div>
+                        </form>
+                    </div>
+
+                @endif
+
                 <div class="card-body text-center min-vh-50">
                     <table class="table vh-50 nav-table">
                         <tr class="h-50">

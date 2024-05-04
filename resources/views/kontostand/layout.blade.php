@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{csrf_token()}}">
 
     <link rel="shortcut icon" href="{{asset('img/favicon.ico')}}" type="image/x-icon">
-    <META HTTP-EQUIV="refresh" CONTENT="600; URL={{route('kontostand')}}">
+    <META HTTP-EQUIV="refresh" CONTENT="{{config('bank.kontostand.logout')}}; URL={{route('kontostand')}}">
     <title>{{env('APP_NAME')}}</title>
 
     <!-- CSS Files -->
