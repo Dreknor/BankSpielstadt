@@ -2,7 +2,7 @@
 
 
 return [
-    'startkapital' => 10,
+    'startkapital' => 3,
 
     //Kontofuehrungsgebühr
     'konto_gebuehr' => 1,
@@ -20,5 +20,11 @@ return [
 
     'kontostand' => [
         'logout' => 15
-    ]
-    ];
+    ],
+
+    'lohn' => [
+        'chef' => env('LOHN_CHEF', 4),
+        'mitarbeiter' => env('LOHN_MITARBEITER', 3),
+    ],
+
+];
