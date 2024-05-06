@@ -28,7 +28,7 @@ class CreateCustomerRequest extends FormRequest
             'name' => ['required','string'],
             'buisness' => ['integer','min:0', 'max:1'],
             'startkapital' => ['nullable','integer'],
-            'key' => ['sometimes','string','nullable'],
+            'key' => ['string','nullable'],
         ];
     }
 }
