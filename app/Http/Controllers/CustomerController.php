@@ -51,6 +51,7 @@ class CustomerController extends Controller
         if (session('customer') == null){
            $Costumer = Customer::where('key', $request->key)->first();
               Session::put('customer', $Costumer);
+              dd(session('customer'));
         } else {
             dd(\session('customer'));
         }
