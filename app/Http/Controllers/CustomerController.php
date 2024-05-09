@@ -42,12 +42,12 @@ class CustomerController extends Controller
             'key' => $request->key
         ]);
 
-        $customer->refresh();
+
 
 
 
         Session::remove('customer');
-        Session::put('customer', $customer);
+        Session::put('customer', Customer::find($customer->id));
 
 
         return redirect(url('/'))->with([
