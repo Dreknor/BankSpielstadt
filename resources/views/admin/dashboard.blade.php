@@ -168,14 +168,21 @@
         </div>
 
         <div class="row mt-2">
-            <div class="col-4">
+            <div class="col-auto">
+                <div class="card">
+                    <div class="card-body">
+                        <a href="{{url('start')}}" class="btn btn-outline-info">Startkapital verteilen</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-auto">
                 <div class="card">
                     <div class="card-body">
                         <a href="{{url('gebuehr')}}" class="btn btn-outline-info">Kontoführungsgebühr und Zinsen kassieren</a>
                     </div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-auto">
                 <div class="card">
                     <div class="card-body">
                         <a href="{{url('export')}}" class="btn btn-outline-info">Export</a>
@@ -183,7 +190,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-auto">
                 <div class="card">
                     <div class="card-body">
                         <a href="{{url('deleteStart')}}" class="btn btn-outline-danger">Startgeld löschen</a>

@@ -64,6 +64,7 @@
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     @if(auth()->user()->is_admin)
                                         <a class="dropdown-item" href="{{ url('dashboard') }}">Dashboard</a>
+                                        <a class="dropdown-item" href="{{ url('import') }}">Import</a>
                                     @endif
                                         @if(auth()->user()->is_manager)
                                             <a class="dropdown-item" href="{{ url('create/customer') }}">neuer Kunde</a>

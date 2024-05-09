@@ -44,6 +44,8 @@ Route::middleware(['auth'])->group(function (){
         Route::get('export', [AdminController::class, 'export']);
         Route::get('deleteStart', [AdminController::class, 'delete']);
         Route::get('start', [AdminController::class, 'makeStartkapital']);
+        Route::get('import', [AdminController::class, 'import'])->name('import');
+        Route::post('import', [AdminController::class, 'storeImport'])->name('import.store');
     });
 
     Route::middleware(['hasCustomer'])->group(function (){

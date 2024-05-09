@@ -2,14 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\CustomerImport;
 use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\WorkingTime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdminController extends Controller
 {
+
+    public function import(){
+        return view('admin.import');
+    }
+
+    public function storeImport(Request $request){
+        $request->validate([
+            'file' => 'required|mimes:xlsx'
+        ]);
+
+        $file = $request->file('file');
+
+        Excel::import(new CustomerImport, $file);
+
+        return redirect()->back()->with([
+            'type' => 'success',
+            'Meldung' => 'Kunden erfolgreich importiert'
+        ]);
+    }
 
     public function delete(){
         $buisnesses = Customer::where('buisness', 1)->where('export', 1)->get();
@@ -57,6 +78,11 @@ class AdminController extends Controller
         }
 
         Payment::insert($payments);
+
+        return redirect()->back()->with([
+            'type' => 'success',
+            'Meldung' => 'Startkapital wurde erstellt'
+        ]);
     }
 
     public function gebuehr(){
