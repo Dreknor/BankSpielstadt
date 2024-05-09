@@ -47,7 +47,6 @@ class CustomerController extends Controller
 
 
         Session::remove('customer');
-        Session::put('customer', Customer::find($customer->id));
 
 
         return redirect(url('/'))->with([
