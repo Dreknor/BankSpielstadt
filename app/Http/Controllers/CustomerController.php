@@ -42,6 +42,8 @@ class CustomerController extends Controller
             'key' => $request->key
         ]);
 
+        session(['customer' => $customer]);
+
         return redirect(url('/'))->with([
             'type'=>'success',
             'Meldung'=> 'Schlüssel wurde gespeichert.'
