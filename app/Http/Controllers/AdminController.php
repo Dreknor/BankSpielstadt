@@ -139,7 +139,7 @@ class AdminController extends Controller
             }
 
             //steuern
-            if ($customer->name != "Rathaus und Ordnungsamt") {
+            if ($customer->name != "Rathaus") {
 
                 if (!$customer->is_buisness()) {
                     $newPayment = new Payment([
@@ -181,7 +181,7 @@ class AdminController extends Controller
 
     public function index(){
 
-        $customer = Customer::where('buisness', 0)
+        $customer = Customer::where('buisness', 0)->orWhere('buisness', null)
             ->with('payments')->paginate(20);
         $buisness_count = Customer::where('buisness', 1)->count();
         $working_times_today = WorkingTime::where('start', '>=', Carbon::today()->startOfDay()->toDateTimeString())->withSum('payment_customer','amount')->get();
