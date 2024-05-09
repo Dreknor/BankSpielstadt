@@ -47,7 +47,7 @@ class CustomerController extends Controller
         Session::remove('customer');
         Session::put('customer', $customer);
 
-        dump(session('customer'));
+        dd(session('customer'));
 
         return redirect(url('/'))->with([
             'type'=>'success',
