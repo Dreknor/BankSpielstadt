@@ -42,7 +42,8 @@ class CustomerController extends Controller
             'key' => $request->key
         ]);
 
-        session(['customer' => $customer]);
+        Session::remove('customer');
+        Session::put('customer', $customer);
 
         return redirect(url('/'))->with([
             'type'=>'success',
