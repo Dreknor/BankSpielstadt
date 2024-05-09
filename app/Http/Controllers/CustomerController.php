@@ -42,6 +42,9 @@ class CustomerController extends Controller
             'key' => $request->key
         ]);
 
+        $customer->refresh();
+
+
 
         Session::remove('customer');
         Session::put('customer', $customer);
