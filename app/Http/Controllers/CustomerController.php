@@ -42,12 +42,10 @@ class CustomerController extends Controller
             'key' => $request->key
         ]);
 
-        dump($customer);
 
         Session::remove('customer');
         Session::put('customer', $customer);
 
-        dd(session('customer'));
 
         return redirect(url('/'))->with([
             'type'=>'success',

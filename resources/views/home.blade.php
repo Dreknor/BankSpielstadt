@@ -29,6 +29,8 @@
                 </div>
 
                 @if(!session('customer')->is_buisness() and (!session('customer')->key or session('customer')->key = null ))
+                    @dump(session('customer')->is_buisness())
+                    @dump(session('customer')->key)
                     <div class="card-body">
                         <div class="alert alert-danger">
                             <h3>
