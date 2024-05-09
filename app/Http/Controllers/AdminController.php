@@ -182,7 +182,7 @@ class AdminController extends Controller
     public function index(){
 
         $customer = Customer::where('buisness', 0)->orWhere('buisness', null)
-            ->with('payments')->orderBy('balance', 'desc')->paginate(25);
+            ->withSum('payments', 'amount')->orderBy('payments_sum_amount', 'desc')->limit(20)->get();
         $buisness_count = Customer::where('buisness', 1)->count();
         $working_times_today = WorkingTime::where('start', '>=', Carbon::today()->startOfDay()->toDateTimeString())->withSum('payment_customer','amount')->get();
         $working_times_today_count = $working_times_today->count();
