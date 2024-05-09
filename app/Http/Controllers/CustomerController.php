@@ -48,6 +48,14 @@ class CustomerController extends Controller
 
         Session::remove('customer');
 
+        if (session('customer') == null){
+           $Costumer = Customer::where('key', $request->key)->first();
+              Session::put('customer', $Costumer);
+        } else {
+            dd(\session('customer'));
+        }
+
+
 
         return redirect(url('/'))->with([
             'type'=>'success',
