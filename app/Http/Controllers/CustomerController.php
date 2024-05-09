@@ -45,13 +45,6 @@ class CustomerController extends Controller
 
 
 
-
-        Session::remove('customer');
-
-
-
-
-
         return redirect(url('/'))->with([
             'type'=>'success',
             'Meldung'=> 'Schlüssel wurde gespeichert.'
