@@ -73,9 +73,9 @@ class WorkingTimeController extends Controller
         $duration = $start_working->diffInMinutes($end_working);
 
         if ($request->manager == 1){
-            $StdLohn = config('bank.lohn.chef');
+            $StdLohn = 4;
         } else {
-            $StdLohn = config('bank.lohn.arbeiter');
+            $StdLohn = 3;
         }
         $Lohn = floor(($duration / 60) * $StdLohn);
 
