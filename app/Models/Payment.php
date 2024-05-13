@@ -11,7 +11,7 @@ class Payment extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['customer_id', 'source_id', 'amount', 'comment', 'user_id'];
+    protected $fillable = ['customer_id', 'source_id', 'amount', 'comment', 'user_id', 'payment_id'];
 
     public function customer(){
         return $this->belongsTo(Customer::class);
@@ -25,6 +25,10 @@ class Payment extends Model
     {
         return $query->whereDate('created_at', '>', Carbon::yesterday())
             ->whereDate('created_at', '<', Carbon::tomorrow());
+    }
+
+    public function partnerPayment(){
+        return $this->belongsTo(Payment::class, 'payment_id');
     }
 
 }

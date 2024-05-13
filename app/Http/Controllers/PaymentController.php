@@ -4,11 +4,73 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\KreditRequest;
 use App\Http\Requests\PaymentRequest;
+use App\Models\Customer;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
+
+    public function ueberweisung(){
+        return view('customer.ueberweisung',[
+            'buisnesses' => Customer::where('buisness', 1)->orderBy('name')->get()
+        ]);
+    }
+
+    public function storeUeberweisung(Request $request)
+    {
+        if (!session('customer')){
+            return redirect()->back()->with([
+                'type' => 'error',
+                'Meldung' => 'Kein Kunde ausgewählt.'
+            ]);
+        }
+
+        $request->validate([
+            'buisness' => 'required|exists:customers,id',
+            'amount' => 'required|numeric|min:1',
+            'reason' => 'required'
+        ]);
+
+        if ($request->amount > session('customer')->balance){
+            return redirect()->back()->with([
+                'type' => 'error',
+                'Meldung' => 'Kontostand zu niedrig!'
+            ]);
+        }
+
+        $empfaenger = Customer::find($request->buisness);
+
+        $payment_from = new Payment([
+            'customer_id' => session('customer')->id,
+            'amount' => 0-$request->amount,
+            'user_id' => auth()->id(),
+            'comment' => 'Überweisung an '. $empfaenger->name.': '.$request->reason
+        ]);
+
+        $payment_from->save();
+
+
+        $payment = new Payment([
+            'customer_id' => $request->buisness,
+            'amount' => $request->amount,
+            'user_id' => auth()->id(),
+            'comment' => 'Überweisung von '. session('customer')->name.': '.$request->reason,
+            'payment_id' => $payment_from->id
+        ]);
+
+        $payment->save();
+
+        $payment_from->update([
+            'payment_id' => $payment->id
+        ]);
+
+        return redirect(url('/'))->with([
+            'type' => 'success',
+            'Meldung' => 'Überweisung gespeichert.'
+        ]);
+    }
+
     public function einzahlen(){
         return view('customer.einzahlen');
     }
@@ -138,6 +200,11 @@ class PaymentController extends Controller
     }
 
     public function delete(Request $request, Payment $payment){
+
+        if ($payment->partnerPayment()->exists()){
+            $payment->partnerPayment->delete();
+        }
+
         $payment->delete();
 
         return redirect(url('/'))->with([

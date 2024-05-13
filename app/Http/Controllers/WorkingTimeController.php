@@ -117,17 +117,22 @@ class WorkingTimeController extends Controller
             'comment' => "Lohn: ". $customer->name.' ('.$start_working->format('d.m.Y H:i') . ' bis '.$end_working->format('H:i').' Uhr)',
             'user_id' => auth()->id()
         ]);
+        $payment_buisness->save();
+
 
         $payment_customer = new Payment([
             'customer_id' => $customer->id,
             'amount' => $Lohn,
             'source_id' => $buisness->id,
             'comment' => "Lohn: ". $buisness->name.' ('.$start_working->format('d.m.Y H:i') . ' bis '.$end_working->format('H:i').' Uhr)',
-            'user_id' => auth()->id()
+            'user_id' => auth()->id(),
+            'payment_id' => $payment_buisness->id,
         ]);
 
-         $payment_buisness->save();
         $payment_customer->save();
+
+        $payment_buisness->payment_id = $payment_customer->id;
+        $payment_buisness->save();
 
 
         $anzahl = $customer->working_times()->whereDate('created_at', Carbon::today())->count();

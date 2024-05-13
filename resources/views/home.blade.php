@@ -54,19 +54,19 @@
                 <div class="card-body text-center min-vh-50">
                     <table class="table vh-50 nav-table">
                         <tr class="h-50">
-                            <th class="align-middle w-50" style="background-color: lightgreen" onclick="location.href='{{url('einzahlen')}}'">
+                            <th class="align-middle w-50" style="background-color: lightgreen"  onclick="location.href='{{url('einzahlen')}}'">
                                 <h1>
                                     Einzahlen
                                 </h1>
                             </th>
                             @if($customer->balance > 0)
-                                <th class="align-middle" style="background-color: lightcoral"  onclick="location.href='{{url('auszahlen')}}'">
+                                <th class="align-middle" style="background-color: lightcoral" onclick="location.href='{{url('auszahlen')}}'">
                                     <h1>
                                         Auszahlen
                                     </h1>
                                 </th>
                             @else
-                                <th class="align-middle" style="background-color: gray">
+                                <th class="align-middle"style="background-color: gray">
                                     <h3>
                                         keine Auszahlung
                                     </h3>
@@ -74,33 +74,50 @@
                             @endif
                         </tr>
                         <tr class="h-50">
+
                             @if(!$customer->is_buisness())
-                                <th class="align-middle" style="background-color: lightblue"  onclick="location.href='{{url('arbeitszeit')}}'">
+                                <th class="align-middle"  style="background-color: lightblue"  onclick="location.href='{{url('arbeitszeit')}}'">
                                     <h1>
                                         Arbeitszeit
                                     </h1>
                                 </th>
-                            @elseif($customer->kredit > 0 )
-                                <th class="align-middle" style="background-color: lightgray">
-                                    <h5>
-                                        kein Kredit
-                                    </h5>
-                                </th>
                             @else
-                                <th class="align-middle" style="background-color: #f8b157" onclick="location.href='{{url('kredit')}}'">
-                                    <h1>
-                                        Kredit
-                                    </h1>
-                                </th>
+                                    <th class="align-middle" style="background-color: lightblue"  onclick="location.href='{{url('ueberweisung')}}'">
+                                        <h1>
+                                            Überweisung
+                                        </h1>
+                                    </th>
                             @endif
+
+
                             <th class="align-middle" style="background-color: lightyellow"  onclick="location.href='{{url('log')}}'">
                                 <h1>
                                     Log
                                 </h1>
                             </th>
                         </tr>
+
+                        @if($customer->is_buisness())
+                            <tr class="h-25">
+                                @if($customer->kredit > 0 )
+                                    <th class="align-middle" colspan="2" style="background-color: lightgray">
+                                        <h5>
+                                            kein Kredit
+                                        </h5>
+                                    </th>
+                                @else
+                                    <th class="align-middle"  colspan="2"  style="background-color: #f8b157" onclick="location.href='{{url('kredit')}}'">
+                                        <h1>
+                                            Kredit
+                                        </h1>
+                                    </th>
+                                @endif
+                            </tr>
+
+
+                        @endif
                         <tr >
-                            <th colspan="2" style="background-color: lightgray"   onclick="location.href='{{url('new/customer')}}'">
+                            <th colspan="4" style="background-color: lightgray"   onclick="location.href='{{url('new/customer')}}'">
                                 <h2 class="pt-4">
                                     neuer Kunde
                                 </h2>

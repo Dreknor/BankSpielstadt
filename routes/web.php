@@ -70,5 +70,8 @@ Route::middleware(['auth'])->group(function (){
         Route::get('arbeitszeit', [WorkingTimeController::class, 'create']);
         Route::post('arbeitszeit', [WorkingTimeController::class, 'store']);
 
+        Route::get('ueberweisung', [PaymentController::class, 'ueberweisung']);
+        Route::post('ueberweisung', [PaymentController::class, 'storeUeberweisung']);
+
     });
 });
