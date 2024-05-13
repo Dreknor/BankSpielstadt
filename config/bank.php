@@ -19,7 +19,7 @@ return [
     'zinsen'    => 10,
 
     'kontostand' => [
-        'logout' => 15
+        'logout' => 7
     ],
 
     'lohn' => [
