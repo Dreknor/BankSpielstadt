@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Auth::routes(['register' => true]);
+Auth::routes(['register' => env('REGISTER', false)]);
 
 Route::get('/kontostand', [KontostandController::class, 'kontostand'])->name('kontostand');
 Route::post('/kontostand/show', [KontostandController::class, 'auth'])->name('kontostand.read_key');
