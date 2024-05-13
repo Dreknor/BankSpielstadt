@@ -117,7 +117,9 @@
                             @foreach($buisnesses as $buisness)
                                 <tr class="@if($buisness->balance < abs($buisness->daily_balance())) text-danger @endif">
                                     <td>
-                                        {{$buisness->name}}
+                                        <a href="{{url('choose/customer/'.$buisness->id)}}">
+                                            {{$buisness->name}}
+                                        </a>
                                     </td>
                                     <td>
                                         {{$buisness->balance}}
@@ -153,7 +155,9 @@
                             @foreach($customers as $customer)
                                 <tr>
                                     <td>
-                                        {{$customer->name}}
+                                        <a href="{{url('choose/customer/'.$customer->id)}}">
+                                            {{$customer->name}}
+                                        </a>
                                     </td>
                                     <td>
                                         {{$customer->balance}}
