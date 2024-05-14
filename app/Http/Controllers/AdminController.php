@@ -198,4 +198,31 @@ class AdminController extends Controller
             'customers' => $customer->sortByDesc('balance')
         ]);
     }
+
+    public function strafe(){
+        return view('customer.strafe');
+    }
+
+    public function storeStrafe(Request $request){
+        $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'comment' => 'required'
+        ]);
+
+        $customer = session('customer');
+
+        $payment = new Payment([
+            'customer_id' => $customer->id,
+            'amount' => 0 - $request->amount,
+            'comment' => $request->comment,
+            'user_id' => auth()->id()
+        ]);
+
+        $payment->save();
+
+        return redirect()->back()->with([
+            'type' => 'success',
+            'Meldung' => 'Strafe wurde eingetragen'
+        ]);
+    }
 }

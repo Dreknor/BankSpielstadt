@@ -46,6 +46,9 @@ Route::middleware(['auth'])->group(function (){
         Route::get('start', [AdminController::class, 'makeStartkapital']);
         Route::get('import', [AdminController::class, 'import'])->name('import');
         Route::post('import', [AdminController::class, 'storeImport'])->name('import.store');
+
+        Route::get('strafe', [AdminController::class, 'strafe']);
+        Route::post('strafe', [AdminController::class, 'storeStrafe']);
     });
 
     Route::middleware(['hasCustomer'])->group(function (){

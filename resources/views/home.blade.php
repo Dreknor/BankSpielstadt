@@ -81,21 +81,45 @@
                                         Arbeitszeit
                                     </h1>
                                 </th>
+                            @elseif($customer->kredit > 0 )
+                                <th class="align-middle" style="background-color: lightgray">
+                                    <h5>
+                                        kein Kredit
+                                    </h5>
+                                </th>
                             @else
-                                    <th class="align-middle" style="background-color: lightblue"  onclick="location.href='{{url('ueberweisung')}}'">
-                                        <h1>
-                                            Überweisung
-                                        </h1>
-                                    </th>
+                                <th class="align-middle" style="background-color: #f8b157" onclick="location.href='{{url('kredit')}}'">
+                                    <h1>
+                                        Kredit
+                                    </h1>
+                                </th>
                             @endif
-
-
                             <th class="align-middle" style="background-color: lightyellow"  onclick="location.href='{{url('log')}}'">
                                 <h1>
                                     Log
                                 </h1>
                             </th>
                         </tr>
+                        @if(auth()->user()->is_admin and !$customer->is_buisness() )
+                            <tr class="h-50">
+                                <th class="align-middle" colspan="2"  style="background-color: lightcoral"   onclick="location.href='{{url('strafe')}}'">
+                                    <h1>
+                                        Strafe
+                                    </h1>
+                                </th>
+                            </tr>
+                        @endif
+                        @if($customer->is_buisness())
+                            <tr class="h-50">
+                                    <th class="align-middle" colspan="2" style="background-color: lightblue"  onclick="location.href='{{url('ueberweisung')}}'">
+                                        <h1>
+                                            Überweisung
+                                        </h1>
+                                    </th>
+                            </tr>
+
+                            @endif
+
 
                         @if($customer->is_buisness())
                             <tr class="h-25">
