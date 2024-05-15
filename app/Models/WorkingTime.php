@@ -44,4 +44,9 @@ class WorkingTime extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function duration()
+    {
+        return $this->start->diffInMinutes($this->end);
+    }
 }

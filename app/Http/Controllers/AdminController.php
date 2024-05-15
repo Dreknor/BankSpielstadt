@@ -181,8 +181,8 @@ class AdminController extends Controller
 
     public function index(){
 
-        $customer = Customer::where('buisness', 0)->orWhere('buisness', null)
-            ->withSum('payments', 'amount')->orderBy('payments_sum_amount', 'desc')->limit(20)->get();
+        $customer = Customer::where('buisness', 0)->orWhere('buisness', null)->with('working_times')
+            ->withSum('payments', 'amount')->orderBy('payments_sum_amount', 'desc')->get();
         $buisness_count = Customer::where('buisness', 1)->count();
         $working_times_today = WorkingTime::where('start', '>=', Carbon::today()->startOfDay()->toDateTimeString())->withSum('payment_customer','amount')->get();
         $working_times_today_count = $working_times_today->count();
@@ -195,7 +195,7 @@ class AdminController extends Controller
             'working_times' => WorkingTime::count(),
             'lohn'  => $lohn,
             'buisnesses' => Customer::where('buisness', 1)->with('payments')->get()->sortByDesc('balance'),
-            'customers' => $customer->sortByDesc('balance')
+            'customers' => $customer
         ]);
     }
 

@@ -142,7 +142,8 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <table class="table table-bordered table-hover">
+                        <table class="table table-bordered table-hover" id="customerTable">
+                            <thead>
                             <tr>
                                 <th>
                                     Name
@@ -150,21 +151,36 @@
                                 <th>
                                     Kontostand
                                 </th>
-
+                                <th>
+                                    Arbeitszeiten
+                                </th>
+                                <th>
+                                    Arbeitszeit (min)
+                                </th>
                             </tr>
-                            @foreach($customers as $customer)
-                                <tr>
-                                    <td>
-                                        <a href="{{url('choose/customer/'.$customer->id)}}">
-                                            {{$customer->name}}
-                                        </a>
+                            </thead>
+                           <tbody>
+                           @foreach($customers as $customer)
+                               <tr>
+                                   <td>
+                                       <a href="{{url('choose/customer/'.$customer->id)}}">
+                                           {{$customer->name}}
+                                       </a>
+                                   </td>
+                                   <td>
+                                       {{$customer->balance}}
+                                   </td>
+                                   <td>
+                                       {{$customer->working_times()->count()}}
+                                   </td>
+                                   <td>
+                                        {{$customer->working_times->sum('duration')}}
                                     </td>
-                                    <td>
-                                        {{$customer->balance}}
-                                    </td>
+                               </tr>
+                           @endforeach
+                           </tbody>
 
-                                </tr>
-                            @endforeach
+
                         </table>
                     </div>
                 </div>
@@ -206,5 +222,13 @@
     </div>
 @endsection
 @push('js')
+    <script src="https://cdn.datatables.net/v/dt/dt-2.0.7/datatables.min.js"></script>
+
+<script>
+    $('#customerTable').DataTable();
+</script>
+@endpush
+@push('css')
+    <link href="https://cdn.datatables.net/v/dt/dt-2.0.7/datatables.min.css" rel="stylesheet">
 
 @endpush
