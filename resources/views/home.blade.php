@@ -66,7 +66,7 @@
                                     </h1>
                                 </th>
                             @else
-                                <th class="align-middle"style="background-color: gray">
+                                <th class="align-middle" style="background-color: gray">
                                     <h3>
                                         keine Auszahlung
                                     </h3>
@@ -119,27 +119,6 @@
                             </tr>
 
                             @endif
-
-
-                        @if($customer->is_buisness())
-                            <tr class="h-25">
-                                @if($customer->kredit > 0 )
-                                    <th class="align-middle" colspan="2" style="background-color: lightgray">
-                                        <h5>
-                                            kein Kredit
-                                        </h5>
-                                    </th>
-                                @else
-                                    <th class="align-middle"  colspan="2"  style="background-color: #f8b157" onclick="location.href='{{url('kredit')}}'">
-                                        <h1>
-                                            Kredit
-                                        </h1>
-                                    </th>
-                                @endif
-                            </tr>
-
-
-                        @endif
                         <tr >
                             <th colspan="4" style="background-color: lightgray"   onclick="location.href='{{url('new/customer')}}'">
                                 <h2 class="pt-4">
@@ -151,6 +130,22 @@
                 </div>
             </div>
         </div>
+        @if($customer->is_buisness() and $customer->bonus->count()>0)
+            <div class="col-auto">
+                <ul class="list-group">
+                    @foreach($customer->bonus as $bonus)
+                        <li class="list-group-item">
+                            <div class="row">
+                                {{$bonus->start}} - {{$bonus->end}}
+                            </div>
+                            <div class="row">
+                                {{$bonus->bonus}} Radi (@if ($bonus->type == 'hourly') je Stunde @else einmalig @endif )
+                            </div>
+
+                    @endforeach
+                </ul>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

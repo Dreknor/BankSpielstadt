@@ -72,14 +72,29 @@ class WorkingTimeController extends Controller
 
         $duration = $start_working->diffInMinutes($end_working);
 
+        $buisness = Customer::find($request->buisness);
+
+        if ($buisness->bonus()->where('start', '<=', $start_working)->where('end', '>=', $end_working)->count() > 0) {
+            $bonus = $buisness->bonus()->where('start', '<=', $start_working)->where('end', '>=', $end_working)->first();
+        }
+
         if ($request->manager == 1){
             $StdLohn = 4;
         } else {
             $StdLohn = 3;
         }
+
+        if (isset($bonus) && $bonus->bonus_type == 'hourly'){
+            $StdLohn = $StdLohn + $bonus->bonus;
+        }
+
         $Lohn = floor(($duration / 60) * $StdLohn);
 
-        $buisness = Customer::find($request->buisness);
+        if (isset($bonus) && $bonus->bonus_type == 'flat'){
+            $Lohn = $Lohn + $bonus->bonus;
+        }
+
+
         $customer = session('customer');
 
         if ($buisness->balance < $Lohn){
@@ -119,12 +134,22 @@ class WorkingTimeController extends Controller
         ]);
         $payment_buisness->save();
 
+        if (isset($bonus)){
+            if ($bonus->bonus_type == 'hourly'){
+                $text = 'Bonus: '.$bonus->bonus.' Radi pro Stunde';
+            } else {
+                $text = 'Bonus: '.$bonus->bonus.' Radi';
+            }
+        } else {
+            $text = '';
+        }
+
 
         $payment_customer = new Payment([
             'customer_id' => $customer->id,
             'amount' => $Lohn,
             'source_id' => $buisness->id,
-            'comment' => "Lohn: ". $buisness->name.' ('.$start_working->format('d.m.Y H:i') . ' bis '.$end_working->format('H:i').' Uhr)',
+            'comment' => "Lohn: ". $buisness->name.' ('.$start_working->format('d.m.Y H:i') . ' bis '.$end_working->format('H:i').' Uhr) '.$text ,
             'user_id' => auth()->id(),
             'payment_id' => $payment_buisness->id,
         ]);

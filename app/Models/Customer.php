@@ -55,6 +55,11 @@ class Customer extends Model
                 ->sum('amount');
     }
 
+    public function bonus()
+    {
+        return $this->hasMany( related: PaymentBonus::class, foreignKey: 'buissnes_id');
+    }
+
 
 
     /**
