@@ -139,7 +139,7 @@
                                 {{$bonus->start}} - {{$bonus->end}}
                             </div>
                             <div class="row">
-                                {{$bonus->bonus}} Radi (@if ($bonus->type == 'hourly') je Stunde @else einmalig @endif )
+                                {{$bonus->bonus}} Radi (@if ($bonus->bonus_type == 'hourly') je Stunde @else einmalig @endif )
                             </div>
 
                     @endforeach
