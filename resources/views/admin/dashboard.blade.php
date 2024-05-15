@@ -174,7 +174,9 @@
                                        {{$customer->working_times->count()}}
                                    </td>
                                    <td>
-
+                                          @if($customer->working_times->count() > 0)
+                                             {{$customer->working_times->sum('duration')}}
+                                          @endif
                                     </td>
                                </tr>
                            @endforeach
