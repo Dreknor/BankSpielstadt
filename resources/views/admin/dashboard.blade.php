@@ -237,7 +237,11 @@
     $('#customerTable').DataTable({layout: {
         topStart: {
             buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
-        }
+        },
+        bottomEnd:   'search',
+        bottomStart: 'info'
+
+
     }});
 </script>
 @endpush
