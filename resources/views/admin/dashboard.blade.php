@@ -235,7 +235,7 @@
 
 <script>
     $('#customerTable').DataTable({layout: {
-        topStart: {
+        top: {
             buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
         },
     }});
