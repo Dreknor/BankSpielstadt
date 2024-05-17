@@ -49,6 +49,9 @@ Route::middleware(['auth'])->group(function (){
 
         Route::get('strafe', [AdminController::class, 'strafe']);
         Route::post('strafe', [AdminController::class, 'storeStrafe']);
+
+        Route::get('remove/key', [AdminController::class, 'removeKey']);
+        Route::post('remove/key', [AdminController::class, 'storeRemoveKey']);
     });
 
     Route::middleware(['hasCustomer'])->group(function (){

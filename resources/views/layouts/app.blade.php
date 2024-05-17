@@ -66,6 +66,7 @@
                                     @if(auth()->user()->is_admin)
                                         <a class="dropdown-item" href="{{ url('dashboard') }}">Dashboard</a>
                                         <a class="dropdown-item" href="{{ url('import') }}">Import</a>
+                                        <a class="dropdown-item" href="{{ url('remove/key') }}">Remove Key</a>
                                     @endif
                                         @if(auth()->user()->is_manager)
                                             <a class="dropdown-item" href="{{ url('create/customer') }}">neuer Kunde</a>

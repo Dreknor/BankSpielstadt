@@ -13,6 +13,38 @@ use Maatwebsite\Excel\Facades\Excel;
 class AdminController extends Controller
 {
 
+    public function removeKey()
+    {
+        return view('admin.userKeys', [
+            'customers' => Customer::whereNotNull('key')->get()
+        ]);
+    }
+
+    public function storeRemoveKey(Request $request)
+    {
+        $request->validate([
+            'key' => 'required'
+        ]);
+
+        $customer = Customer::where('key', $request->key)->first();
+
+        if ($customer){
+            $customer->key = null;
+            $customer->save();
+
+            return redirect()->back()->with([
+                'type' => 'success',
+                'Meldung' => 'Key wurde entfernt'
+            ]);
+        }
+
+        return redirect()->back()->with([
+            'type' => 'error',
+            'Meldung' => 'Key nicht gefunden'
+        ]);
+    }
+
+
     public function import(){
         return view('admin.import');
     }
