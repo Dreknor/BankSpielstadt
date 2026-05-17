@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateCustomerRequest;
+use App\Models\AktienTransaktion;
 use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\WorkingTime;
@@ -79,12 +80,19 @@ class CustomerController extends Controller
     }
 
     public function log(){
-        $payments = session('customer')->payments()->orderByDesc('created_at')->paginate(10);
+        $customer = session('customer');
 
-        return view('customer.log', [
-            'payments' => $payments,
-            'working_times' => WorkingTime::where('customer_id', session('customer')->id)->get()
-        ]);
+        $payments = $customer->payments()->orderByDesc('created_at')->paginate(10);
+
+        $working_times = WorkingTime::where('customer_id', $customer->id)->get();
+
+        // Aktien-Transaktionen des Kunden (Käufe & Verkäufe)
+        $aktienTransaktionen = AktienTransaktion::with('betrieb')
+            ->where('customer_id', $customer->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('customer.log', compact('payments', 'working_times', 'aktienTransaktionen'));
     }
 
     public function search(Request $request)

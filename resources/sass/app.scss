@@ -1,8 +1,8 @@
 // Fonts
-@import url('https://fonts.googleapis.com/css?family=Nunito');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
-// Variables
-@import 'variables';
+// Hinweis: Das UI nutzt nun Tailwind (Play-CDN, eingebunden in den Blade-Layouts).
+// Bootstrap wurde entfernt. Diese Datei bleibt nur als Platzhalter,
+// damit `npm run dev` weiterhin durchläuft. Eigene globale Styles können hier ergänzt werden.
 
-// Bootstrap
-@import '~bootstrap/scss/bootstrap';
+body { font-family: 'Nunito', system-ui, sans-serif; }

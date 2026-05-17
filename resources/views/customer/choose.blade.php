@@ -1,65 +1,73 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title">
-                            {{ __('Kunde wählen') }}
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        @if (session('status'))
-                            <div class="alert alert-success" role="alert">
-                                {{ session('status') }}
-                            </div>
-                        @endif
-                        <form autocomplete="off" class="form-horizontal">
-                            <div class="row">
-                                    <label>
-                                        Bitte Name eingeben
-                                        <input class="form-control w-100" id="search" autofocus
-                                               type='text'
-                                               autoComplete='off'>
-                                    </label>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="card-footer">
-                        <ul class="list-group" id="ergebnis">
-
-                        </ul>
-                    </div>
+<div class="max-w-2xl mx-auto">
+    <div class="card">
+        <div class="p-6 border-b-2 border-slate-100">
+            <h2 class="text-2xl font-extrabold flex items-center gap-2">
+                <i class="fa-solid fa-user-magnifying-glass text-brand-600"></i>
+                {{ __('Kunde wählen') }}
+            </h2>
+        </div>
+        <div class="p-6">
+            @if (session('status'))
+                <div class="rounded-2xl bg-emerald-50 border-2 border-emerald-200 text-emerald-800 p-4 mb-4">
+                    {{ session('status') }}
                 </div>
-            </div>
+            @endif
+            <form autocomplete="off">
+                <label class="label" for="search">Bitte Name eingeben</label>
+                <input id="search" class="field text-xl" autofocus type="text" autocomplete="off" placeholder="z. B. Lisa">
+            </form>
+        </div>
+        <div class="p-6 pt-0">
+            <ul id="ergebnis" class="divide-y divide-slate-200 bg-white rounded-2xl ring-1 ring-slate-100 hidden">
+            </ul>
         </div>
     </div>
+</div>
 @endsection
 
 @push('js')
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.1/bootstrap3-typeahead.min.js">
-    </script>
-    <script type="text/javascript">
-        var route = "{{ url('autocomplete-search') }}";
-        $('#search').typeahead({
-            source: function (query, process) {
-                return $.get(route, {
-                    query: query
-                }, function (data) {
-                    console.log(data)
-                    return process(data);
+<script type="text/javascript">
+    (function () {
+        const route   = "{{ url('autocomplete-search') }}";
+        const baseUrl = "{{ url('choose/customer') }}";
+        const input   = document.getElementById('search');
+        const list    = document.getElementById('ergebnis');
+        let timer;
+
+        function render(items) {
+            list.innerHTML = '';
+            if (!items || items.length === 0) { list.classList.add('hidden'); return; }
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'p-4 hover:bg-brand-50 cursor-pointer font-semibold text-lg flex items-center gap-3';
+                li.innerHTML = '<i class="fa-solid fa-user text-brand-600"></i>' + (item.name || item);
+                li.addEventListener('click', () => {
+                    window.location.href = baseUrl + '/' + item.id;
                 });
-            },
-            afterSelect: function (item){
-                window.location.href = "{{url('choose/customer')}}" + '/'+ item.id;
-            }
+                list.appendChild(li);
+            });
+            list.classList.remove('hidden');
+        }
+
+        input.addEventListener('input', function () {
+            clearTimeout(timer);
+            const q = this.value.trim().toLowerCase();
+            if (q.length < 1) { list.innerHTML = ''; list.classList.add('hidden'); return; }
+            timer = setTimeout(() => {
+                fetch(route + '?query=' + encodeURIComponent(q) + '&name=' + encodeURIComponent(q))
+                    .then(r => r.json())
+                    .then(items => {
+                        // Client-Filter, falls Backend ohne Filter alle liefert
+                        const filtered = (items || []).filter(it => (it.name || '').toLowerCase().includes(q));
+                        render(filtered.slice(0, 20));
+                    })
+                    .catch(() => {});
+            }, 150);
         });
-    </script>
+    })();
+</script>
 @endpush
 
-@push('css')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" />
-@endpush

@@ -1,247 +1,157 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Earnings (Monthly) Card Example -->
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-primary shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Kunden</div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {{$customer_count}}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-users fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="space-y-6">
 
-            <!-- Earnings (Monthly) Card Example -->
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-success shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                    Betriebe
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {{$buisness_count}}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fa fa-building fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
+    {{-- Statistik-Karten --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="card p-5 border-l-8 border-brand-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-bold text-brand-600 uppercase">Kunden</div>
+                    <div class="text-3xl font-extrabold mt-1">{{ $customer_count }}</div>
                 </div>
-            </div>
-
-            <!-- Earnings (Monthly) Card Example -->
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-info shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                    Arbeitszeiten
-                                </div>
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col-auto">
-                                        <div class="h5 mb-0 mr-2 font-weight-bold text-gray-800">
-                                            {{$working_times_today_count}} (heute)
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
-                                            / {{$working_times}} (gesamt)
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pending Requests Card Example -->
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-warning shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                    Lohnzahlungen (heute)
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {{$lohn}} Radi
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-hand-holding-dollar fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <i class="fa-solid fa-users text-3xl text-brand-200"></i>
             </div>
         </div>
-        <div class="row">
-            <div class="col-xl-6 col-md-6 mb-6">
-                <div class="card border-left-success shadow h-100 ">
-                    <div class="card-header">
-                        <div class=" font-weight-bold text-uppercase mb-1">
-                            Kontostand Betriebe
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-bordered table-hover">
-                            <tr>
-                                <th>
-                                    Name
-                                </th>
-                                <th>
-                                    Kontostand
-                                </th>
-                                <th></th>
-                            </tr>
-                            @foreach($buisnesses as $buisness)
-                                <tr class="@if($buisness->balance < abs($buisness->daily_balance())) text-danger @endif">
-                                    <td>
-                                        <a href="{{url('choose/customer/'.$buisness->id)}}">
-                                            {{$buisness->name}}
-                                        </a>
-                                    </td>
-                                    <td>
-                                        {{$buisness->balance}}
-                                    </td>
-                                    <td>
-                                        {{$buisness->daily_balance()}}
-                                    </td>
-
-                                </tr>
-                            @endforeach
-                        </table>
-                    </div>
+        <div class="card p-5 border-l-8 border-emerald-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-bold text-emerald-600 uppercase">Betriebe</div>
+                    <div class="text-3xl font-extrabold mt-1">{{ $buisness_count }}</div>
                 </div>
-            </div>
-            <div class="col-xl-6 col-md-6 mb-6">
-                <div class="card border-left-success shadow h-100 ">
-                    <div class="card-header">
-                        <div class=" font-weight-bold text-uppercase mb-1">
-                            Kontostand Bewohner
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-bordered table-hover" id="customerTable">
-                            <thead>
-                            <tr>
-                                <th>
-                                    Name
-                                </th>
-                                <th>
-                                    Kontostand
-                                </th>
-                                <th>
-                                    Arbeitszeiten
-                                </th>
-                                <th>
-                                    Arbeitszeit (min)
-                                </th>
-                            </tr>
-                            </thead>
-                           <tbody>
-                           @foreach($customers as $customer)
-                               <tr>
-                                   <td>
-                                       <a href="{{url('choose/customer/'.$customer->id)}}">
-                                           {{$customer->name}}
-                                       </a>
-                                   </td>
-                                   <td>
-                                       {{$customer->balance}}
-                                   </td>
-                                   <td>
-                                       {{$customer->working_times->count()}}
-                                   </td>
-                                   <td>
-                                          @if($customer->working_times->count() > 0)
-                                             {{$customer->working_times->sum('duration')}}
-                                          @endif
-                                    </td>
-                               </tr>
-                           @endforeach
-                           </tbody>
-
-
-                        </table>
-                    </div>
-                </div>
+                <i class="fa-solid fa-building text-3xl text-emerald-200"></i>
             </div>
         </div>
-
-        <div class="row mt-2">
-            <div class="col-auto">
-                <div class="card">
-                    <div class="card-body">
-                        <a href="{{url('start')}}" class="btn btn-outline-info">Startkapital verteilen</a>
+        <div class="card p-5 border-l-8 border-sky-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-bold text-sky-600 uppercase">Arbeitszeiten</div>
+                    <div class="text-xl font-extrabold mt-1">
+                        {{ $working_times_today_count }} <span class="text-sm text-slate-500">(heute)</span>
+                    </div>
+                    <div class="text-xl font-extrabold">
+                        {{ $working_times }} <span class="text-sm text-slate-500">(gesamt)</span>
                     </div>
                 </div>
+                <i class="fa-solid fa-clipboard-list text-3xl text-sky-200"></i>
             </div>
-            <div class="col-auto">
-                <div class="card">
-                    <div class="card-body">
-                        <a href="{{url('gebuehr')}}" class="btn btn-outline-info">Kontoführungsgebühr und Zinsen kassieren</a>
-                    </div>
+        </div>
+        <div class="card p-5 border-l-8 border-amber-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-bold text-amber-600 uppercase">Lohnzahlungen (heute)</div>
+                    <div class="text-3xl font-extrabold mt-1">{{ $lohn }} Radi</div>
                 </div>
-            </div>
-            <div class="col-auto">
-                <div class="card">
-                    <div class="card-body">
-                        <a href="{{url('export')}}" class="btn btn-outline-info">Export</a>
-
-                    </div>
-                </div>
-            </div>
-            <div class="col-auto">
-                <div class="card">
-                    <div class="card-body">
-                        <a href="{{url('deleteStart')}}" class="btn btn-outline-danger">Startgeld löschen</a>
-
-                    </div>
-                </div>
+                <i class="fa-solid fa-hand-holding-dollar text-3xl text-amber-200"></i>
             </div>
         </div>
     </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {{-- Betriebe --}}
+        <div class="card">
+            <div class="px-5 py-4 border-b-2 border-slate-100 font-extrabold text-lg">
+                <i class="fa-solid fa-building mr-2 text-emerald-600"></i>Kontostand Betriebe
+            </div>
+            <div class="overflow-x-auto p-2">
+                <table class="min-w-full text-left">
+                    <thead class="text-sm uppercase text-slate-500">
+                        <tr>
+                            <th class="px-3 py-2">Name</th>
+                            <th class="px-3 py-2">Kontostand</th>
+                            <th class="px-3 py-2">heute</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach($buisnesses as $buisness)
+                            <tr class="{{ $buisness->balance < abs($buisness->daily_balance()) ? 'text-rose-600' : '' }}">
+                                <td class="px-3 py-2">
+                                    <a href="{{ url('choose/customer/'.$buisness->id) }}" class="font-semibold text-brand-600 hover:underline">
+                                        {{ $buisness->name }}
+                                    </a>
+                                </td>
+                                <td class="px-3 py-2 font-bold">{{ $buisness->balance }}</td>
+                                <td class="px-3 py-2">{{ $buisness->daily_balance() }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Bewohner --}}
+        <div class="card">
+            <div class="px-5 py-4 border-b-2 border-slate-100 font-extrabold text-lg">
+                <i class="fa-solid fa-users mr-2 text-brand-600"></i>Kontostand Bewohner
+            </div>
+            <div class="overflow-x-auto p-2">
+                <table class="min-w-full text-left" id="customerTable">
+                    <thead class="text-sm uppercase text-slate-500">
+                        <tr>
+                            <th class="px-3 py-2">Name</th>
+                            <th class="px-3 py-2">Kontostand</th>
+                            <th class="px-3 py-2">Arbeitszeiten</th>
+                            <th class="px-3 py-2">Arbeitszeit (min)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach($customers as $customer)
+                            <tr>
+                                <td class="px-3 py-2">
+                                    <a href="{{ url('choose/customer/'.$customer->id) }}" class="font-semibold text-brand-600 hover:underline">
+                                        {{ $customer->name }}
+                                    </a>
+                                </td>
+                                <td class="px-3 py-2 font-bold">{{ $customer->balance }}</td>
+                                <td class="px-3 py-2">{{ $customer->working_times->count() }}</td>
+                                <td class="px-3 py-2">
+                                    @if($customer->working_times->count() > 0)
+                                        {{ $customer->working_times->sum('duration') }}
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Aktionen --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <a href="{{ url('start') }}" class="card p-5 hover:shadow-lg transition text-center font-bold text-brand-700">
+            <i class="fa-solid fa-coins block text-2xl mb-2"></i>Startkapital verteilen
+        </a>
+        <a href="{{ url('gebuehr') }}" class="card p-5 hover:shadow-lg transition text-center font-bold text-brand-700">
+            <i class="fa-solid fa-percent block text-2xl mb-2"></i>Kontoführungsgebühr und Zinsen kassieren
+        </a>
+        <a href="{{ url('export') }}" class="card p-5 hover:shadow-lg transition text-center font-bold text-brand-700">
+            <i class="fa-solid fa-file-export block text-2xl mb-2"></i>Export
+        </a>
+        <a href="{{ url('deleteStart') }}" class="card p-5 hover:shadow-lg transition text-center font-bold text-rose-700">
+            <i class="fa-solid fa-eraser block text-2xl mb-2"></i>Startgeld löschen
+        </a>
+        <a href="{{ route('admin.betriebe.pin') }}" class="card p-5 hover:shadow-lg transition text-center font-bold text-emerald-700">
+            <i class="fa-solid fa-store block text-2xl mb-2"></i>Betriebs-PINs & Kassen
+        </a>
+    </div>
+</div>
 @endsection
+
+@push('css')
+    <link href="https://cdn.datatables.net/v/dt/dt-2.0.7/datatables.min.css" rel="stylesheet">
+@endpush
+
 @push('js')
     <script src="https://cdn.datatables.net/v/dt/dt-2.0.7/datatables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.js"></script>
     <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.dataTables.js"></script>
     <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-
-
-
-<script>
-    $('#customerTable').DataTable({layout: {
-        top: {
-            buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
-        },
-    }});
-</script>
-@endpush
-@push('css')
-    <link href="https://cdn.datatables.net/v/dt/dt-2.0.7/datatables.min.css" rel="stylesheet">
-
+    <script>
+        $('#customerTable').DataTable({
+            layout: { top: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] } },
+        });
+    </script>
 @endpush

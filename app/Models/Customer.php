@@ -12,8 +12,17 @@ class Customer extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name', 'buisness', 'startkapital', 'kredit','key','export'];
-    protected $visible = ['id','name', 'buisness', 'startkapital', 'kredit','key','export'];
+    protected $fillable = ['name', 'buisness', 'startkapital', 'kredit', 'key', 'export', 'betrieb_pin',
+                            'aktien_gesamt', 'aktien_kurs', 'aktien_startkurs', 'aktien_letzte_berechnung',
+                            'is_boerse', 'is_fotostudio', 'fotostudio_token'];
+    protected $visible = ['id','name', 'buisness', 'startkapital', 'kredit','key','export',
+                          'aktien_gesamt', 'aktien_kurs', 'is_boerse', 'is_fotostudio'];
+
+    protected $casts = [
+        'is_boerse'     => 'boolean',
+        'is_fotostudio' => 'boolean',
+        'buisness'      => 'integer',
+    ];
 
 
     public function payments(): HasMany
@@ -55,9 +64,89 @@ class Customer extends Model
                 ->sum('amount');
     }
 
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    public function kasseTransaktionen(): HasMany
+    {
+        return $this->hasMany(KasseTransaktion::class);
+    }
+
+    public function kassenbestand(): int
+    {
+        $ein = $this->kasseTransaktionen()->whereIn('type', ['einlage', 'verkauf'])->sum('amount');
+        $aus = $this->kasseTransaktionen()->where('type', 'entnahme')->sum('amount');
+        return $ein - $aus;
+    }
+
     public function bonus()
     {
         return $this->hasMany( related: PaymentBonus::class, foreignKey: 'buissnes_id');
+    }
+
+    // ── Radi-Börse ────────────────────────────────────────────────────────────
+
+    public function hatAktien(): bool
+    {
+        return $this->aktien_gesamt !== null;
+    }
+
+    public function anteileVerkauft(): int
+    {
+        return AktienBestand::where('buisness_id', $this->id)->sum('stueck');
+    }
+
+    public function anteileEigen(): int
+    {
+        return ($this->aktien_gesamt ?? 0) - $this->anteileVerkauft();
+    }
+
+    public function kursVerlauf()
+    {
+        return $this->hasMany(AktienKurs::class, 'buisness_id');
+    }
+
+    public function beobachtungen()
+    {
+        return $this->hasMany(BoerseBeobachtung::class, 'buisness_id');
+    }
+
+    public function aktienBestaende()
+    {
+        return $this->hasMany(AktienBestand::class, 'buisness_id');
+    }
+
+    public function aktienPortfolio()
+    {
+        return $this->hasMany(AktienBestand::class, 'customer_id');
+    }
+
+    public function letzteBeobachtung(): ?int
+    {
+        return $this->beobachtungen()->latest('created_at')->value('angestellte');
+    }
+
+    public function isBoerse(): bool
+    {
+        return (bool) $this->is_boerse;
+    }
+
+    public function isFotostudio(): bool
+    {
+        return (bool) $this->is_fotostudio;
+    }
+
+    public function fotostudioBilder()
+    {
+        return $this->hasMany(FotostudioBild::class);
+    }
+
+    /** Liefert den als Börse markierten Customer (falls vorhanden). */
+    public static function boerseBetrieb(): ?self
+    {
+        return static::where('is_boerse', true)->first();
     }
 
 

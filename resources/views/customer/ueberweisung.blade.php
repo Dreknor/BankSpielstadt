@@ -1,68 +1,39 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="max-w-3xl mx-auto">
+    <div class="card">
+        @include('customer._header')
 
-
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card">
-                    <div class="card-header text-center">
-                        <div class="row">
-                            <div class="col-8">
-                                <h1>
-                                    {{session('customer')->name}}
-                                </h1>
-                            </div>
-                            <div class="col-4">
-                                <h3 class="mt-2 {{(session('customer')->balance > 0)? 'text-success' : 'text-danger'}}">
-                                    Kontostand: {{session('customer')->balance}} Radi
-                                </h3>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="card-body min-vh-50" style="background-color: lightblue">
-                        <form action="{{url('ueberweisung')}}" method="post" class="form-horizontal w-100 mt-5 ">
-                            @csrf
-                            <div class="form-row mt-2">
-                                <label class=" w-100">
-                                    <h4>An welchen Betrieb soll Geld geschickt werden?</h4>
-                                    <select class="form-select" name="buisness" required>
-                                        <option disabled selected></option>
-                                        @foreach($buisnesses as $buisness)
-                                            <option value="{{$buisness->id}}">{{$buisness->name}}</option>
-                                        @endforeach
-                                    </select>
-                                </label>
-                            </div>
-                            <div class="form-row mt-2">
-                                <label class=" w-100">
-                                    <h4>Wofür wird das Geld überwiesen?</h4>
-                                    <input class="form-control" name="reason" type="text" required>
-                                </label>
-                            </div>
-
-                            <div class="form-row mt-2">
-                                <label class=" w-100">
-                                    <h4>Wieviel Radi sollen überwiesen werden?</h4>
-                                    <input type="number" step="1" min="1" max="{{session('customer')->balance}}" class="form-control" name="amount" required>
-                                </label>
-                            </div>
-
-                            <div class="form-row mt-4">
-                                <button type="submit" class="btn btn-lg btn-success w-100">Geld senden</button>
-                            </div>
-
-                        </form>
-                    </div>
-                    <div class="card-footer" style="background-color: lightgray" onclick="location.href='{{url('/')}}'">
-                        <h2 class="pt-4 m-auto text-center">
-                            zurück
-                        </h2>
-                    </div>
+        <div class="p-6 bg-sky-50">
+            <form action="{{ url('ueberweisung') }}" method="post" class="space-y-5">
+                @csrf
+                <div>
+                    <label for="buisness" class="label">An welchen Betrieb soll Geld geschickt werden?</label>
+                    <select id="buisness" class="field" name="buisness" required>
+                        <option disabled selected value="">– bitte wählen –</option>
+                        @foreach($buisnesses as $buisness)
+                            <option value="{{ $buisness->id }}">{{ $buisness->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
-            </div>
+                <div>
+                    <label for="reason" class="label">Wofür wird das Geld überwiesen?</label>
+                    <input id="reason" class="field" name="reason" type="text" required>
+                </div>
+                <div>
+                    <label for="amount" class="label">Wieviel Radi sollen überwiesen werden?</label>
+                    <input id="amount" type="number" step="1" min="1"
+                           max="{{ session('customer')->balance }}"
+                           class="field text-2xl" name="amount" required>
+                </div>
+                <button type="submit" class="btn btn-success w-full text-2xl py-5">
+                    <i class="fa-solid fa-paper-plane"></i> Geld senden
+                </button>
+            </form>
         </div>
+
+        @include('customer._back')
     </div>
+</div>
 @endsection
