@@ -66,7 +66,7 @@
                     <div class="text-3xl font-extrabold text-slate-700">{{ $b->aktien_kurs ?? $b->aktien_startkurs ?? 10 }} Radi</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-xs text-slate-500 font-semibold">Einfluss</div>
+                    <div class="text-xs text-slate-500 font-semibold">Kursänderung</div>
                     <div id="vorschau-delta-{{ $b->id }}" class="text-3xl font-extrabold">—</div>
                 </div>
                 <div class="text-center">
@@ -100,10 +100,13 @@ function aktualisiereVorschau(id, alterKurs) {
     const rohKurs   = alterKurs + delta;
     const neuerKurs = Math.max(minKurs, Math.max(alterKurs - maxSprung, Math.min(alterKurs + maxSprung, rohKurs)));
 
+    // Anzeige tatsächliche Kursänderung (nicht den Rohwert delta)
+    const echteAenderung = neuerKurs - alterKurs;
+
     // Anzeige Einfluss
     const deltaEl = document.getElementById('vorschau-delta-' + id);
-    deltaEl.textContent = (delta >= 0 ? '+' : '') + delta;
-    deltaEl.className   = 'text-3xl font-extrabold ' + (delta > 0 ? 'text-emerald-600' : delta < 0 ? 'text-rose-600' : 'text-slate-500');
+    deltaEl.textContent = (echteAenderung >= 0 ? '+' : '') + echteAenderung;
+    deltaEl.className   = 'text-3xl font-extrabold ' + (echteAenderung > 0 ? 'text-emerald-600' : echteAenderung < 0 ? 'text-rose-600' : 'text-slate-500');
 
     // Anzeige neuer Kurs
     const kursEl = document.getElementById('vorschau-kurs-' + id);
