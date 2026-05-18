@@ -29,6 +29,9 @@
                     @if(isset($s['minuten']) && $s['minuten'] < 999)
                         · zuletzt vor {{ $s['minuten'] }} Minuten
                     @endif
+                    @if(!empty($s['mitarbeiter']))
+                        · bestätigt von: <b>{{ $s['mitarbeiter'] }}</b>
+                    @endif
                     @if(!empty($s['text'])) · {{ $s['text'] }} @endif
                 </div>
             </div>

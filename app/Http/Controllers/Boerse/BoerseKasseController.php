@@ -7,6 +7,7 @@ use App\Http\Requests\BoerseKasseRequest;
 use App\Models\BoerseAufgabenLog;
 use App\Models\BoerseKasse;
 use App\Services\BoerseAufgabenService;
+use Illuminate\Http\Request;
 
 class BoerseKasseController extends Controller
 {
@@ -51,15 +52,22 @@ class BoerseKasseController extends Controller
             ->with(['type' => 'success', 'Meldung' => "{$request->betrag} Radi entnommen."]);
     }
 
-    public function bestaetigen(BoerseAufgabenService $service)
+    public function bestaetigen(Request $request, BoerseAufgabenService $service)
     {
+        $request->validate([
+            'mitarbeiter' => 'required|string|max:80',
+        ], [
+            'mitarbeiter.required' => 'Bitte deinen Namen eingeben.',
+        ]);
+
         BoerseAufgabenLog::create([
-            'aufgabe'    => 'kassenkontrolle',
-            'created_at' => now(),
+            'aufgabe'     => 'kassenkontrolle',
+            'mitarbeiter' => trim($request->mitarbeiter),
+            'created_at'  => now(),
         ]);
         $service->clearCache();
         return redirect('/boerse/kasse')
-            ->with(['type' => 'success', 'Meldung' => '✅ Kassenstand bestätigt! Gut gemacht.']);
+            ->with(['type' => 'success', 'Meldung' => '✅ Kassenstand bestätigt! Gut gemacht, ' . trim($request->mitarbeiter) . '!']);
     }
 }
 

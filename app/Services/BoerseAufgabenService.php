@@ -75,17 +75,23 @@ class BoerseAufgabenService
 
     private function pruefeLog(string $aufgabe, int $warnMin, int $alarmMin): array
     {
-        $letzte = BoerseAufgabenLog::where('aufgabe', $aufgabe)
-            ->latest('created_at')->value('created_at');
+        $letzterEintrag = BoerseAufgabenLog::where('aufgabe', $aufgabe)
+            ->latest('created_at')->first();
 
-        if ($letzte === null) {
+        if ($letzterEintrag === null) {
             return ['status' => 'alarm', 'seit' => null,
                 'text' => 'Noch nicht erledigt heute!', 'minuten' => 999];
         }
 
-        $ts     = Carbon::parse($letzte);
+        $ts     = Carbon::parse($letzterEintrag->created_at);
         $minAgo = Carbon::now()->diffInMinutes($ts);
-        return $this->bewerte($minAgo, $warnMin, $alarmMin, $ts);
+        $result = $this->bewerte($minAgo, $warnMin, $alarmMin, $ts);
+
+        if (!empty($letzterEintrag->mitarbeiter)) {
+            $result['mitarbeiter'] = $letzterEintrag->mitarbeiter;
+        }
+
+        return $result;
     }
 
     private function pruefeKurstafel(): array

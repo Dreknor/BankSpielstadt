@@ -12,12 +12,26 @@
         @endif
     </div>
 
-    <form method="POST" action="/boerse/kasse/bestaetigen" class="mt-4 text-center">
+    <form method="POST" action="/boerse/kasse/bestaetigen" class="mt-4">
         @csrf
-        <button class="bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold px-8 py-4 rounded-xl shadow-kid">
-            ✅ Kassenstand bestätigen
-        </button>
-        <div class="text-sm text-slate-500 mt-1">Bitte stündlich klicken!</div>
+        <div class="mb-3">
+            <label class="block text-sm font-semibold text-slate-600 mb-1 text-center">
+                Dein Name (wer bestätigt?)
+            </label>
+            <input type="text" name="mitarbeiter" required maxlength="80"
+                   placeholder="z. B. Lena"
+                   value="{{ old('mitarbeiter') }}"
+                   class="w-full text-xl text-center border-2 {{ $errors->has('mitarbeiter') ? 'border-rose-400' : 'border-slate-300' }} rounded-xl px-4 py-3 focus:outline-none focus:border-amber-400">
+            @error('mitarbeiter')
+                <p class="text-rose-600 text-sm text-center mt-1 font-semibold">{{ $message }}</p>
+            @enderror
+        </div>
+        <div class="text-center">
+            <button class="bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold px-8 py-4 rounded-xl shadow-kid">
+                ✅ Kassenstand bestätigen
+            </button>
+            <div class="text-sm text-slate-500 mt-1">Bitte stündlich klicken!</div>
+        </div>
     </form>
 </div>
 

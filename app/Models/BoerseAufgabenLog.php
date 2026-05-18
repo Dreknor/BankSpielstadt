@@ -11,6 +11,6 @@ class BoerseAufgabenLog extends Model
     public $timestamps = false;
     protected $dates   = ['created_at'];
 
-    protected $fillable = ['aufgabe', 'created_at'];
+    protected $fillable = ['aufgabe', 'mitarbeiter', 'created_at'];
 }
 
