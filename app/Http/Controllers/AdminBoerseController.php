@@ -90,7 +90,7 @@ class AdminBoerseController extends Controller
         ]);
         abort_unless($customer->hatAktien(), 404);
 
-        $alterKurs = $customer->aktien_kurs;
+        $alterKurs = $customer->aktien_kurs ?? 0;
         $customer->update(['aktien_kurs' => $request->kurs]);
 
         AktienKurs::create([
