@@ -46,7 +46,13 @@ class BoerseController extends Controller
 
     public function hilfe()
     {
-        return view('boerse.hilfe');
+        $kursInfo = [
+            'normalAngest' => config('bank.aktien.angestellte_normal', 4),
+            'maxSprungPct' => config('bank.aktien.max_sprung_prozent', 15),
+            'minKurs'      => config('bank.aktien.min_kurs', 1),
+            'teiler'       => config('bank.aktien.kurs_teiler', 20),
+        ];
+        return view('boerse.hilfe', compact('kursInfo'));
     }
 
     public function hilfeDrucken()
