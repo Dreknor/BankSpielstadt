@@ -145,10 +145,12 @@ Route::prefix('betrieb')->group(function () {
         Route::delete('produkte/{product}',             [ProduktController::class, 'destroy'])->name('betrieb.produkte.destroy');
 
         // Kasse
-        Route::get('kasse',            [KasseController::class, 'index'])->name('betrieb.kasse');
-        Route::post('kasse/verkauf',   [KasseController::class, 'storeVerkauf'])->name('betrieb.kasse.verkauf');
-        Route::post('kasse/einlage',   [KasseController::class, 'storeEinlage'])->name('betrieb.kasse.einlage');
-        Route::post('kasse/entnahme',  [KasseController::class, 'storeEntnahme'])->name('betrieb.kasse.entnahme');
+        Route::get('kasse',                  [KasseController::class, 'index'])->name('betrieb.kasse');
+        Route::post('kasse/verkauf',         [KasseController::class, 'storeVerkauf'])->name('betrieb.kasse.verkauf');
+        Route::post('kasse/einlage',         [KasseController::class, 'storeEinlage'])->name('betrieb.kasse.einlage');
+        Route::post('kasse/entnahme',        [KasseController::class, 'storeEntnahme'])->name('betrieb.kasse.entnahme');
+        Route::get('kasse/warenkorb',        [KasseController::class, 'getWarenkorb'])->name('betrieb.kasse.warenkorb.get');
+        Route::post('kasse/warenkorb',       [KasseController::class, 'saveWarenkorb'])->name('betrieb.kasse.warenkorb.save');
 
         // Abrechnung
         Route::get('abrechnung',         [AbrechnungController::class, 'index'])->name('betrieb.abrechnung');
