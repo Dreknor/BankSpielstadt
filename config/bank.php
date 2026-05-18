@@ -2,24 +2,24 @@
 
 
 return [
-    'startkapital' => 10,
+    'startkapital' => env('BANK_STARTKAPITAL', 10),
 
     //Kontofuehrungsgebühr
-    'konto_gebuehr' => 2,
+    'konto_gebuehr' => env('BANK_KONTO_GEBUEHR', 2),
 
     //Kosten Arbeitszeitberechnungen
-    'kostenfreie_berechnungen' => 3, //je Tag
-    'kosten_berechnungen' => 1, //Radi
+    'kostenfreie_berechnungen' => env('BANK_KOSTENFREIE_BERECHNUNGEN', 3), //je Tag
+    'kosten_berechnungen'      => env('BANK_KOSTEN_BERECHNUNGEN', 1),      //Radi
 
     //Steuern
-    'steuern' => 2, //Radi
-    'gewinn_steuer' => 10, //%
+    'steuern'      => env('BANK_STEUERN', 2),        //Radi
+    'gewinn_steuer' => env('BANK_GEWINN_STEUER', 10), //%
 
     //Zinsen Kredit
-    'zinsen'    => 10,
+    'zinsen' => env('BANK_ZINSEN', 10),
 
     'kontostand' => [
-        'logout' => 5
+        'logout' => env('BANK_KONTOSTAND_LOGOUT', 5), // Minuten bis Auto-Logout
     ],
 
     'lohn' => [
@@ -32,22 +32,22 @@ return [
     // ── Radi-Börse ──────────────────────────────────────────────────────────
     'aktien' => [
         'boerse_pin'             => env('BOERSE_PIN', '1234'),
-        'standard_gesamt'        => 100,
-        'min_kurs'               => 1,
-        'kurs_teiler'            => 20,
-        'angestellte_normal'     => 4,
-        'max_sprung_prozent'     => 15,
-        'dividende_prozent'      => 20,
-        'kasse_warnschwelle'     => 50,
-        'max_bargeld_invest'     => 50,
-        'kauf_gebuehr'           => env('BOERSE_KAUF_GEBUEHR', 1), // Bar-Gebühr je Aktienkauf (zusätzlich zum Kurspreis)
+        'standard_gesamt'        => env('BOERSE_STANDARD_GESAMT', 100),    // Gesamtanzahl Aktien je Unternehmen
+        'min_kurs'               => env('BOERSE_MIN_KURS', 1),             // Mindestkurs in Radi
+        'kurs_teiler'            => env('BOERSE_KURS_TEILER', 20),         // Teiler für Kursberechnung
+        'angestellte_normal'     => env('BOERSE_ANGESTELLTE_NORMAL', 4),   // Normaler Personalstand
+        'max_sprung_prozent'     => env('BOERSE_MAX_SPRUNG_PROZENT', 15),  // Maximale Kursänderung in %
+        'dividende_prozent'      => env('BOERSE_DIVIDENDE_PROZENT', 20),   // Dividendenanteil am Gewinn in %
+        'kasse_warnschwelle'     => env('BOERSE_KASSE_WARNSCHWELLE', 50),  // Börsen-Kassenbestand Warnschwelle (Radi)
+        'max_bargeld_invest'     => env('BOERSE_MAX_BARGELD_INVEST', 50),  // Max. Bargeld-Investition je Kauf (Radi)
+        'kauf_gebuehr'           => env('BOERSE_KAUF_GEBUEHR', 1),         // Bar-Gebühr je Aktienkauf (zusätzlich zum Kurspreis)
         'aufgaben' => [
-            'beobachtung_warn_min'      => 75,
-            'beobachtung_alarm_min'     => 90,
-            'kassenkontrolle_warn_min'  => 90,
-            'kassenkontrolle_alarm_min' => 120,
-            'kurstafel_warn_min'        => 15,
-            'kurstafel_alarm_min'       => 30,
+            'beobachtung_warn_min'      => env('BOERSE_BEOBACHTUNG_WARN_MIN', 75),
+            'beobachtung_alarm_min'     => env('BOERSE_BEOBACHTUNG_ALARM_MIN', 90),
+            'kassenkontrolle_warn_min'  => env('BOERSE_KASSENKONTROLLE_WARN_MIN', 90),
+            'kassenkontrolle_alarm_min' => env('BOERSE_KASSENKONTROLLE_ALARM_MIN', 120),
+            'kurstafel_warn_min'        => env('BOERSE_KURSTAFEL_WARN_MIN', 15),
+            'kurstafel_alarm_min'       => env('BOERSE_KURSTAFEL_ALARM_MIN', 30),
         ],
     ],
 
