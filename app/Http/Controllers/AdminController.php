@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ImportVorlageExport;
 use App\Imports\CustomerImport;
 use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\WorkingTime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\TemporaryDirectory\TemporaryDirectory;
 
 class AdminController extends Controller
 {
@@ -50,23 +51,31 @@ class AdminController extends Controller
         return view('admin.import');
     }
 
-    public function storeImport(Request $request){
+    public function importVorlage(){
+        return Excel::download(new ImportVorlageExport, 'import-vorlage.xlsx');
+    }
+
+    public function storeImport(Request $request)
+    {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls'
+            'file' => 'required|file|mimes:xlsx,xls',
         ]);
 
-        $path = $request->file('file')->store('imports', 'local');
+        $uploadedFile = $request->file('file');
+        $ext          = strtolower($uploadedFile->getClientOriginalExtension()) ?: 'xlsx';
+        $tmpDir       = (new TemporaryDirectory())->create();
 
         try {
-            Excel::import(new CustomerImport, $path, 'local');
+            // move_uploaded_file() via Symfony – zuverlässig auf jedem Server
+            $moved = $uploadedFile->move($tmpDir->path(''), 'import.' . $ext);
+            Excel::import(new CustomerImport, $moved->getPathname());
         } finally {
-            // Temporäre Datei wieder löschen
-            Storage::disk('local')->delete($path);
+            $tmpDir->delete();
         }
 
         return redirect()->back()->with([
-            'type' => 'success',
-            'Meldung' => 'Kunden erfolgreich importiert'
+            'type'    => 'success',
+            'Meldung' => 'Kunden erfolgreich importiert',
         ]);
     }
 

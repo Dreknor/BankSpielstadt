@@ -27,7 +27,7 @@ class CustomerImport implements ToModel, WithHeadingRow
             'kredit' => $row['kredit'] ?? 0,
             'is_boerse' => $row['is_boerse'] ?? 0,
             'is_fotostudio' => $row['is_fotostudio'] ?? 0,
-            'betrieb_pin'   => $row['betrieb_pin']   ?? null,
+            'betrieb_pin' => $row['betrieb_pin'] ?? rand(1000,9999),
             'aktien_gesamt' => $row['aktien_gesamt'] ?? config('bank.aktien.standard_gesamt'),
             'aktien_kurs' => $row['start_kurs'] ?? config('bank.aktien.start_kurs'),
 
