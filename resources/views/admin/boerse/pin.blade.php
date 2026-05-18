@@ -14,20 +14,32 @@
             <div class="rounded-xl border-2 border-amber-300 bg-amber-50 p-4">
                 <div class="text-sm text-amber-700">Aktuell markiert als Börse:</div>
                 <div class="text-2xl font-extrabold text-amber-800">{{ $boerseBetrieb->name }}</div>
-                <form method="POST" action="/admin/boerse/markierung/entfernen" class="mt-3"
-                      onsubmit="return confirm('Markierung wirklich entfernen?')">
-                    @csrf
-                    <button class="btn bg-rose-100 text-rose-700">Markierung entfernen</button>
-                </form>
+                <div class="flex gap-3 mt-3 flex-wrap">
+                    <a href="{{ route('admin.betriebe.boerse', $boerseBetrieb) }}" class="btn btn-ghost text-sm">
+                        <i class="fa-solid fa-gear mr-1"></i> Einstellungen anzeigen
+                    </a>
+                    <form method="POST" action="/admin/boerse/markierung/entfernen"
+                          onsubmit="return confirm('Markierung wirklich entfernen?')">
+                        @csrf
+                        <button class="btn bg-rose-100 text-rose-700">Markierung entfernen</button>
+                    </form>
+                </div>
             </div>
         @else
             <div class="text-slate-500">Aktuell ist <b>kein</b> Betrieb als Börse markiert.</div>
         @endif
 
-        <form method="POST" action="/admin/boerse/markierung" class="space-y-3">
+        <p class="text-sm text-slate-500 pt-2">
+            <i class="fa-solid fa-circle-info mr-1"></i>
+            Die Börse-Zuweisung kann auch direkt auf der Betrieb-Detailseite vorgenommen werden:
+            <a href="{{ route('admin.betriebe.pin') }}" class="underline">Betriebe verwalten</a>
+            → Betrieb auswählen → <strong>Börse</strong>-Button.
+        </p>
+
+        <form method="POST" action="/admin/boerse/markierung" class="space-y-3 pt-2 border-t border-slate-200">
             @csrf
             <div>
-                <label class="label">Betrieb auswählen (muss bereits einen Betriebs-PIN haben)</label>
+                <label class="label">Betrieb direkt hier markieren (muss bereits einen Betriebs-PIN haben)</label>
                 <select name="customer_id" required class="field">
                     <option value="">— bitte wählen —</option>
                     @foreach($betriebe as $b)

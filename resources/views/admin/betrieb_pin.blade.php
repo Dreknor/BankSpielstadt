@@ -61,6 +61,12 @@
                                 <a href="{{ route('admin.betriebe.fotostudio', $b) }}" class="btn btn-ghost text-sm py-2 px-3 {{ $b->is_fotostudio ? 'bg-purple-100 text-purple-800' : '' }}">
                                     <i class="fa-solid fa-camera"></i> Fotostudio
                                 </a>
+                                <a href="{{ route('admin.betriebe.boerse', $b) }}" class="btn btn-ghost text-sm py-2 px-3 {{ $b->is_boerse ? 'bg-amber-100 text-amber-800' : '' }}">
+                                    <i class="fa-solid fa-chart-line"></i> Börse
+                                    @if($b->is_boerse)
+                                        <span class="ml-1 text-xs font-bold">✓</span>
+                                    @endif
+                                </a>
                             </td>
                         </tr>
                     @endforeach

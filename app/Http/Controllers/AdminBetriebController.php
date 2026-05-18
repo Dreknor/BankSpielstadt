@@ -84,6 +84,42 @@ class AdminBetriebController extends Controller
         return view('admin.betrieb_fotostudio', compact('betrieb', 'bilder'));
     }
 
+    /** Börse-Einstellungen eines Betriebs (Admin) */
+    public function boerse(Customer $customer)
+    {
+        abort_if(! $customer->is_buisness(), 404);
+        $betrieb      = $customer;
+        $boerseBetrieb = Customer::boerseBetrieb();
+        return view('admin.betrieb_boerse', compact('betrieb', 'boerseBetrieb'));
+    }
+
+    /** Betrieb als Börse markieren / Markierung entfernen */
+    public function boerseStore(Request $request, Customer $customer)
+    {
+        abort_if(! $customer->is_buisness(), 404);
+        $request->validate(['aktion' => 'required|in:aktivieren,deaktivieren']);
+
+        if ($request->input('aktion') === 'aktivieren') {
+            abort_if(! $customer->betrieb_pin, 422, 'Der Betrieb benötigt zuerst einen Betriebs-PIN.');
+
+            // Bisherige Börse-Markierung zurücksetzen (nur einer möglich)
+            Customer::where('is_boerse', true)->update(['is_boerse' => false]);
+            $customer->update(['is_boerse' => true]);
+
+            return back()->with([
+                'type'    => 'success',
+                'Meldung' => $customer->name . ' ist jetzt als Börse markiert. Mitarbeiter kommen per Betriebs-PIN ins Börsen-Frontend.',
+            ]);
+        }
+
+        // Deaktivieren
+        $customer->update(['is_boerse' => false]);
+        return back()->with([
+            'type'    => 'warning',
+            'Meldung' => 'Börse-Markierung für ' . $customer->name . ' entfernt.',
+        ]);
+    }
+
     /** Fotostudio aktivieren / deaktivieren / Token erneuern */
     public function fotostudioStore(Request $request, Customer $customer)
     {

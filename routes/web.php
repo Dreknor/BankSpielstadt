@@ -177,6 +177,8 @@ Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
     Route::get('betriebe/{customer}/produkte',          [AdminBetriebController::class, 'produkte'])->name('admin.betriebe.produkte');
     Route::get('betriebe/{customer}/fotostudio',        [AdminBetriebController::class, 'fotostudio'])->name('admin.betriebe.fotostudio');
     Route::post('betriebe/{customer}/fotostudio',       [AdminBetriebController::class, 'fotostudioStore'])->name('admin.betriebe.fotostudio.store');
+    Route::get('betriebe/{customer}/boerse',            [AdminBetriebController::class, 'boerse'])->name('admin.betriebe.boerse');
+    Route::post('betriebe/{customer}/boerse',           [AdminBetriebController::class, 'boerseStore'])->name('admin.betriebe.boerse.store');
 });
 
 /*

@@ -119,8 +119,22 @@ class AdminController extends Controller
 
     public function gebuehr(){
         $customers = Customer::all();
-        $bank = Customer::where('name', 'Bank')->first();
-        $rathaus = Customer::where('name', 'LIKE','%Rathaus%')->first();
+        $bank    = Customer::where('name', 'Bank')->first();
+        $rathaus = Customer::where('name', 'LIKE', '%Rathaus%')->first();
+
+        if (! $bank) {
+            return redirect()->back()->with([
+                'type'    => 'error',
+                'Meldung' => 'Konto "Bank" nicht gefunden. Bitte zuerst einen Kunden mit dem Namen "Bank" anlegen.',
+            ]);
+        }
+
+        if (! $rathaus) {
+            return redirect()->back()->with([
+                'type'    => 'error',
+                'Meldung' => 'Konto "Rathaus" nicht gefunden. Bitte zuerst einen Kunden mit "Rathaus" im Namen anlegen.',
+            ]);
+        }
 
         $newPayment = new Payment([
             'customer_id' => $bank->id,
