@@ -18,7 +18,7 @@ class ProduktController extends Controller
     public function index()
     {
         $betrieb  = $this->betrieb();
-        $produkte = $betrieb->products()->withTrashed()->orderBy('name')->get();
+        $produkte = $betrieb->products()->orderBy('name')->get();
         $kassenbestand = $betrieb->kassenbestand();
         return view('betrieb.produkte.index', compact('betrieb', 'produkte', 'kassenbestand'));
     }
