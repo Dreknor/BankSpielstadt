@@ -10,11 +10,16 @@ class KasseTransaktion extends Model
 {
     protected $table = 'kasse_transaktionen';
 
-    protected $fillable = ['customer_id', 'type', 'amount', 'comment'];
+    protected $fillable = ['customer_id', 'type', 'amount', 'comment', 'ausgefuehrt_von'];
 
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function ausfuehrer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'ausgefuehrt_von');
     }
 
     public function positionen(): HasMany

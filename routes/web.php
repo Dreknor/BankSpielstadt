@@ -151,6 +151,7 @@ Route::prefix('betrieb')->group(function () {
         Route::post('kasse/entnahme',        [KasseController::class, 'storeEntnahme'])->name('betrieb.kasse.entnahme');
         Route::get('kasse/warenkorb',        [KasseController::class, 'getWarenkorb'])->name('betrieb.kasse.warenkorb.get');
         Route::post('kasse/warenkorb',       [KasseController::class, 'saveWarenkorb'])->name('betrieb.kasse.warenkorb.save');
+        Route::get('kunden/suche',           [KasseController::class, 'searchKunden'])->name('betrieb.kunden.suche');
 
         // Abrechnung
         Route::get('abrechnung',         [AbrechnungController::class, 'index'])->name('betrieb.abrechnung');

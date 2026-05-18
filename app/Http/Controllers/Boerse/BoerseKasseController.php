@@ -14,7 +14,7 @@ class BoerseKasseController extends Controller
     public function index(BoerseAufgabenService $service)
     {
         $kassenstand    = BoerseKasse::kassenstand();
-        $transaktionen  = BoerseKasse::latest('created_at')->take(50)->get();
+        $transaktionen  = BoerseKasse::with('ausfuehrer')->latest('created_at')->take(50)->get();
         $warnung        = $kassenstand <= config('bank.aktien.kasse_warnschwelle', 50);
         $aufgabenStatus = $service->status();
         return view('boerse.kasse.index', compact('kassenstand', 'transaktionen', 'warnung', 'aufgabenStatus'));
@@ -22,15 +22,18 @@ class BoerseKasseController extends Controller
 
     public function einlage(BoerseKasseRequest $request, BoerseAufgabenService $service)
     {
+        $person = \App\Models\Customer::findOrFail($request->ausgefuehrt_von);
+
         BoerseKasse::create([
-            'typ'        => 'einlage',
-            'betrag'     => $request->betrag,
-            'notiz'      => $request->notiz ?: 'Bareinlage',
-            'created_at' => now(),
+            'typ'             => 'einlage',
+            'betrag'          => $request->betrag,
+            'notiz'           => ($request->notiz ?: 'Bareinlage') . ' – ' . $person->name,
+            'ausgefuehrt_von' => $person->id,
+            'created_at'      => now(),
         ]);
         $service->clearCache();
         return redirect('/boerse/kasse')
-            ->with(['type' => 'success', 'Meldung' => "{$request->betrag} Radi eingelegt. ✅"]);
+            ->with(['type' => 'success', 'Meldung' => "{$request->betrag} Radi durch {$person->name} eingelegt. ✅"]);
     }
 
     public function entnahme(BoerseKasseRequest $request, BoerseAufgabenService $service)
@@ -41,15 +44,18 @@ class BoerseKasseController extends Controller
                 'Meldung' => "Nicht genug Bargeld in der Börse! Kassenstand: {$kassenstand} Radi."]);
         }
 
+        $person = \App\Models\Customer::findOrFail($request->ausgefuehrt_von);
+
         BoerseKasse::create([
-            'typ'        => 'entnahme',
-            'betrag'     => $request->betrag,
-            'notiz'      => $request->notiz ?: 'Entnahme',
-            'created_at' => now(),
+            'typ'             => 'entnahme',
+            'betrag'          => $request->betrag,
+            'notiz'           => ($request->notiz ?: 'Entnahme') . ' – ' . $person->name,
+            'ausgefuehrt_von' => $person->id,
+            'created_at'      => now(),
         ]);
         $service->clearCache();
         return redirect('/boerse/kasse')
-            ->with(['type' => 'success', 'Meldung' => "{$request->betrag} Radi entnommen."]);
+            ->with(['type' => 'success', 'Meldung' => "{$request->betrag} Radi durch {$person->name} entnommen."]);
     }
 
     public function bestaetigen(Request $request, BoerseAufgabenService $service)

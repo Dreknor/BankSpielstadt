@@ -11,11 +11,16 @@ class BoerseKasse extends Model
     public $timestamps = false;
     protected $dates   = ['created_at'];
 
-    protected $fillable = ['typ', 'betrag', 'notiz', 'aktien_transaktion_id', 'created_at'];
+    protected $fillable = ['typ', 'betrag', 'notiz', 'ausgefuehrt_von', 'aktien_transaktion_id', 'created_at'];
 
     public function aktienTransaktion()
     {
         return $this->belongsTo(AktienTransaktion::class, 'aktien_transaktion_id');
+    }
+
+    public function ausfuehrer()
+    {
+        return $this->belongsTo(\App\Models\Customer::class, 'ausgefuehrt_von');
     }
 
     /** Aktueller Bargeld-Kassenstand der Börse */

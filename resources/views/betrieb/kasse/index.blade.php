@@ -73,6 +73,13 @@
         </h3>
         <form method="POST" action="{{ route('betrieb.kasse.einlage') }}" class="space-y-3">
             @csrf
+            @include('boerse.partials.kind_suche', [
+                'endpoint'    => route('betrieb.kunden.suche'),
+                'accent'      => 'emerald',
+                'idName'      => 'ausgefuehrt_von',
+                'idPrefix'    => 'einlage-person',
+                'platzhalter' => 'Namen eintippen…',
+            ])
             <div>
                 <label class="label text-sm">Betrag (Radi)</label>
                 <input type="number" name="amount" min="1" class="field" required>
@@ -91,6 +98,13 @@
         </h3>
         <form method="POST" action="{{ route('betrieb.kasse.entnahme') }}" class="space-y-3">
             @csrf
+            @include('boerse.partials.kind_suche', [
+                'endpoint'    => route('betrieb.kunden.suche'),
+                'accent'      => 'rose',
+                'idName'      => 'ausgefuehrt_von',
+                'idPrefix'    => 'entnahme-person',
+                'platzhalter' => 'Namen eintippen…',
+            ])
             <div>
                 <label class="label text-sm">Betrag (Radi)</label>
                 <input type="number" name="amount" min="1" max="{{ $kassenbestand }}" class="field" required>

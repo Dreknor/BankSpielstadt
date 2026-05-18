@@ -40,7 +40,14 @@
         <h2 class="text-xl font-bold text-emerald-700 mb-3">➕ Einlage erfassen</h2>
         <form method="POST" action="/boerse/kasse/einlage" class="space-y-3">
             @csrf
-            <input type="number" name="betrag" min="1" required placeholder="Radi"
+            @include('boerse.partials.kind_suche', [
+                'endpoint'    => '/boerse/handel/suche/kinder',
+                'accent'      => 'emerald',
+                'idName'      => 'ausgefuehrt_von',
+                'idPrefix'    => 'boerse-einlage-person',
+                'platzhalter' => 'Namen eintippen…',
+            ])
+            <input type="number" name="betrag" min="1" required placeholder="Betrag (Radi)"
                    class="w-full text-2xl text-center border-2 border-slate-300 rounded-xl px-3 py-2">
             <input type="text" name="notiz" maxlength="120" placeholder="Notiz (optional)"
                    class="w-full border-2 border-slate-300 rounded-xl px-3 py-2">
@@ -51,7 +58,14 @@
         <h2 class="text-xl font-bold text-rose-700 mb-3">➖ Entnahme erfassen</h2>
         <form method="POST" action="/boerse/kasse/entnahme" class="space-y-3">
             @csrf
-            <input type="number" name="betrag" min="1" required placeholder="Radi"
+            @include('boerse.partials.kind_suche', [
+                'endpoint'    => '/boerse/handel/suche/kinder',
+                'accent'      => 'rose',
+                'idName'      => 'ausgefuehrt_von',
+                'idPrefix'    => 'boerse-entnahme-person',
+                'platzhalter' => 'Namen eintippen…',
+            ])
+            <input type="number" name="betrag" min="1" required placeholder="Betrag (Radi)"
                    class="w-full text-2xl text-center border-2 border-slate-300 rounded-xl px-3 py-2">
             <input type="text" name="notiz" maxlength="120" placeholder="Grund"
                    class="w-full border-2 border-slate-300 rounded-xl px-3 py-2">
@@ -67,7 +81,7 @@
     @else
         <table class="w-full text-sm">
             <thead class="text-left text-slate-500"><tr>
-                <th>Zeit</th><th>Typ</th><th>Betrag</th><th>Notiz</th>
+                <th>Zeit</th><th>Typ</th><th>Betrag</th><th>Von</th><th>Notiz</th>
             </tr></thead>
             <tbody>
                 @foreach($transaktionen as $t)
@@ -78,6 +92,7 @@
                         <td class="py-1">{{ $t->created_at?->format('H:i') }}</td>
                         <td>{{ $t->typ }}</td>
                         <td class="font-bold {{ $minus ? 'text-rose-600' : 'text-emerald-600' }}">{{ $minus ? '-' : '+' }}{{ $t->betrag }}</td>
+                        <td class="text-slate-700 font-semibold">{{ $t->ausfuehrer?->name ?? '—' }}</td>
                         <td class="text-slate-600">{{ $t->notiz }}</td>
                     </tr>
                 @endforeach

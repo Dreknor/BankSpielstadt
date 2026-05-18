@@ -93,30 +93,50 @@ class KasseController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    public function searchKunden(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $q = trim((string) $request->get('q', ''));
+        $kunden = Customer::where('buisness', 0)
+            ->when($q !== '', fn($query) => $query->where('name', 'LIKE', '%' . $q . '%'))
+            ->limit(20)
+            ->get(['id', 'name']);
+        return response()->json($kunden);
+    }
+
     public function storeEinlage(Request $request)
     {
         $request->validate([
-            'amount'  => 'required|integer|min:1',
-            'comment' => 'nullable|string|max:200',
+            'amount'          => 'required|integer|min:1',
+            'comment'         => 'nullable|string|max:200',
+            'ausgefuehrt_von' => 'required|integer|exists:customers,id',
+        ], [
+            'ausgefuehrt_von.required' => 'Bitte den Namen der ausführenden Person auswählen.',
+            'ausgefuehrt_von.exists'   => 'Diese Person wurde nicht gefunden.',
         ]);
 
-        $betrieb = $this->betrieb();
+        $betrieb   = $this->betrieb();
+        $person    = Customer::findOrFail($request->ausgefuehrt_von);
 
         KasseTransaktion::create([
-            'customer_id' => $betrieb->id,
-            'type'        => 'einlage',
-            'amount'      => $request->amount,
-            'comment'     => $request->comment ?: 'Bareinlage',
+            'customer_id'     => $betrieb->id,
+            'type'            => 'einlage',
+            'amount'          => $request->amount,
+            'comment'         => ($request->comment ?: 'Bareinlage') . ' – ' . $person->name,
+            'ausgefuehrt_von' => $person->id,
         ]);
 
-        return redirect('/betrieb/kasse')->with(['type' => 'success', 'Meldung' => 'Einlage von ' . $request->amount . ' Radi gebucht!']);
+        return redirect('/betrieb/kasse')->with(['type' => 'success', 'Meldung' => 'Einlage von ' . $request->amount . ' Radi durch ' . $person->name . ' gebucht!']);
     }
 
     public function storeEntnahme(Request $request)
     {
         $request->validate([
-            'amount'  => 'required|integer|min:1',
-            'comment' => 'required|string|max:200',
+            'amount'          => 'required|integer|min:1',
+            'comment'         => 'required|string|max:200',
+            'ausgefuehrt_von' => 'required|integer|exists:customers,id',
+        ], [
+            'ausgefuehrt_von.required' => 'Bitte den Namen der ausführenden Person auswählen.',
+            'ausgefuehrt_von.exists'   => 'Diese Person wurde nicht gefunden.',
         ]);
 
         $betrieb = $this->betrieb();
@@ -125,14 +145,17 @@ class KasseController extends Controller
             return back()->with(['type' => 'error', 'Meldung' => 'Nicht genug Geld in der Kasse! Kassenbestand: ' . $betrieb->kassenbestand() . ' Radi.']);
         }
 
+        $person = Customer::findOrFail($request->ausgefuehrt_von);
+
         KasseTransaktion::create([
-            'customer_id' => $betrieb->id,
-            'type'        => 'entnahme',
-            'amount'      => $request->amount,
-            'comment'     => $request->comment,
+            'customer_id'     => $betrieb->id,
+            'type'            => 'entnahme',
+            'amount'          => $request->amount,
+            'comment'         => $request->comment . ' – ' . $person->name,
+            'ausgefuehrt_von' => $person->id,
         ]);
 
-        return redirect('/betrieb/kasse')->with(['type' => 'success', 'Meldung' => $request->amount . ' Radi entnommen.']);
+        return redirect('/betrieb/kasse')->with(['type' => 'success', 'Meldung' => $request->amount . ' Radi durch ' . $person->name . ' entnommen.']);
     }
 }
 
