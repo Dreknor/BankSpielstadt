@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\WorkingTime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AdminController extends Controller
@@ -51,12 +52,17 @@ class AdminController extends Controller
 
     public function storeImport(Request $request){
         $request->validate([
-            'file' => 'required|mimes:xlsx'
+            'file' => 'required|mimes:xlsx,xls'
         ]);
 
-        $file = $request->file('file');
+        $path = $request->file('file')->store('imports', 'local');
 
-        Excel::import(new CustomerImport, $file);
+        try {
+            Excel::import(new CustomerImport, $path, 'local');
+        } finally {
+            // Temporäre Datei wieder löschen
+            Storage::disk('local')->delete($path);
+        }
 
         return redirect()->back()->with([
             'type' => 'success',
