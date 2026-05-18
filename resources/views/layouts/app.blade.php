@@ -49,6 +49,8 @@
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ url('dashboard') }}"><i class="fa-solid fa-gauge mr-2 text-brand-600"></i>Dashboard</a>
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ url('import') }}"><i class="fa-solid fa-file-import mr-2 text-brand-600"></i>Import</a>
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ url('remove/key') }}"><i class="fa-solid fa-key mr-2 text-brand-600"></i>Key entfernen</a>
+                                <a class="block px-4 py-3 hover:bg-slate-100" href="{{ route('admin.benutzer.index') }}"><i class="fa-solid fa-users-gear mr-2 text-violet-600"></i>Benutzer</a>
+                                <a class="block px-4 py-3 hover:bg-slate-100" href="{{ route('admin.logs') }}"><i class="fa-solid fa-scroll mr-2 text-orange-500"></i>Logs</a>
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ route('admin.betriebe.pin') }}"><i class="fa-solid fa-store mr-2 text-emerald-600"></i>Betriebs-Kassen</a>
                                 @php
                                     try { $boerseAlarm = app(\App\Services\BoerseAufgabenService::class)->alarmCount(); }
@@ -84,6 +86,8 @@
                     <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ url('dashboard') }}">Dashboard</a>
                     <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ url('import') }}">Import</a>
                     <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ url('remove/key') }}">Key entfernen</a>
+                    <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ route('admin.benutzer.index') }}">Benutzer</a>
+                    <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ route('admin.logs') }}">Logs</a>
                 @endif
                 @if(auth()->user()->is_manager)
                     <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ url('create/customer') }}">neuer Kunde</a>
@@ -139,5 +143,67 @@
     });
 </script>
 @stack('js')
+
+@auth
+@if(auth()->user()->is_admin && config('push.vapid_public_key'))
+<script>
+(function () {
+    'use strict';
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    // Service Worker registrieren
+    navigator.serviceWorker.register('/service-worker.js').then(function (reg) {
+
+        // VAPID Public Key laden
+        fetch('{{ route("push.vapid-key") }}')
+            .then(r => r.json())
+            .then(data => {
+                const vapidKey = data.publicKey;
+                if (!vapidKey) return;
+
+                Notification.requestPermission().then(function (perm) {
+                    if (perm !== 'granted') return;
+
+                    reg.pushManager.getSubscription().then(function (existingSub) {
+                        if (existingSub) return; // schon abonniert
+
+                        const appServerKey = urlBase64ToUint8Array(vapidKey);
+                        reg.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: appServerKey,
+                        }).then(function (sub) {
+                            const subJson = sub.toJSON();
+                            fetch('{{ route("push.abonnieren") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                },
+                                body: JSON.stringify({
+                                    endpoint:        subJson.endpoint,
+                                    keys:            subJson.keys,
+                                    contentEncoding: (PushManager.supportedContentEncodings || ['aesgcm'])[0],
+                                }),
+                            });
+                        }).catch(function (e) {
+                            console.warn('Push-Abonnement fehlgeschlagen:', e);
+                        });
+                    });
+                });
+            });
+    });
+
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64  = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const raw     = window.atob(base64);
+        return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+    }
+})();
+</script>
+@endif
+@endauth
+
 </body>
 </html>

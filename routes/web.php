@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\AdminBenutzerController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminBetriebController;
 use App\Http\Controllers\AdminBoerseController;
+use App\Http\Controllers\AdminLogController;
+use App\Http\Controllers\PushController;
 use App\Http\Controllers\Betrieb\BetriebController;
 use App\Http\Controllers\Betrieb\ProduktController;
 use App\Http\Controllers\Betrieb\KasseController;
@@ -70,7 +73,24 @@ Route::middleware(['auth'])->group(function (){
 
         Route::get('remove/key', [AdminController::class, 'removeKey']);
         Route::post('remove/key', [AdminController::class, 'storeRemoveKey']);
+
+        // Benutzerverwaltung
+        Route::get('admin/benutzer',                      [AdminBenutzerController::class, 'index'])->name('admin.benutzer.index');
+        Route::get('admin/benutzer/erstellen',            [AdminBenutzerController::class, 'create'])->name('admin.benutzer.create');
+        Route::post('admin/benutzer',                     [AdminBenutzerController::class, 'store'])->name('admin.benutzer.store');
+        Route::get('admin/benutzer/{benutzer}/bearbeiten',[AdminBenutzerController::class, 'edit'])->name('admin.benutzer.edit');
+        Route::put('admin/benutzer/{benutzer}',           [AdminBenutzerController::class, 'update'])->name('admin.benutzer.update');
+        Route::delete('admin/benutzer/{benutzer}',        [AdminBenutzerController::class, 'destroy'])->name('admin.benutzer.destroy');
+
+        // Log-Viewer
+        Route::get('admin/logs',  [AdminLogController::class, 'index'])->name('admin.logs');
+        Route::post('admin/logs/leeren', [AdminLogController::class, 'leeren'])->name('admin.logs.leeren');
     });
+
+    // Push-Benachrichtigungen (alle eingeloggten User)
+    Route::get('push/vapid-key',    [PushController::class, 'vapidKey'])->name('push.vapid-key');
+    Route::post('push/abonnieren',  [PushController::class, 'abonnieren'])->name('push.abonnieren');
+    Route::post('push/abbestellen', [PushController::class, 'abbestellen'])->name('push.abbestellen');
 
     Route::middleware(['hasCustomer'])->group(function (){
         Route::get('new/customer', [CustomerController::class, 'new']);

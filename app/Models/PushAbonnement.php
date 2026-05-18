@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class PushAbonnement extends Model
+{
+    protected $table = 'push_abonnements';
+
+    protected $fillable = [
+        'user_id',
+        'endpoint',
+        'public_key',
+        'auth_token',
+        'content_encoding',
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+
