@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\KasseTransaktion;
 use App\Models\KassePosition;
+use App\Models\Warenkorb;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -23,7 +24,8 @@ class KasseController extends Controller
         Session::put('betrieb', $betrieb);
         $produkte = $betrieb->products()->where('active', true)->orderBy('name')->get();
         $kassenbestand = $betrieb->kassenbestand();
-        return view('betrieb.kasse.index', compact('betrieb', 'produkte', 'kassenbestand'));
+        $gespeicherterWarenkorb = Warenkorb::where('customer_id', $betrieb->id)->value('inhalt') ?? [];
+        return view('betrieb.kasse.index', compact('betrieb', 'produkte', 'kassenbestand', 'gespeicherterWarenkorb'));
     }
 
     public function storeVerkauf(Request $request)
@@ -63,9 +65,32 @@ class KasseController extends Controller
             foreach ($positionen as $pos) {
                 KassePosition::create(array_merge($pos, ['transaktion_id' => $transaktion->id]));
             }
+
+            // Warenkorb nach erfolgreichem Verkauf leeren
+            Warenkorb::where('customer_id', $betrieb->id)->delete();
         });
 
         return redirect('/betrieb/kasse')->with(['type' => 'success', 'Meldung' => 'Verkauf wurde gebucht!']);
+    }
+
+    public function getWarenkorb(): \Illuminate\Http\JsonResponse
+    {
+        $betrieb = $this->betrieb();
+        $inhalt = Warenkorb::where('customer_id', $betrieb->id)->value('inhalt') ?? [];
+        return response()->json($inhalt);
+    }
+
+    public function saveWarenkorb(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $betrieb = $this->betrieb();
+        $inhalt = $request->input('inhalt', []);
+
+        Warenkorb::updateOrCreate(
+            ['customer_id' => $betrieb->id],
+            ['inhalt' => $inhalt]
+        );
+
+        return response()->json(['ok' => true]);
     }
 
     public function storeEinlage(Request $request)

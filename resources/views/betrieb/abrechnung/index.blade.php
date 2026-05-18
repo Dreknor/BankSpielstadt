@@ -87,7 +87,7 @@
                                     @if($t->positionen->isNotEmpty())
                                         <ul class="mt-1 list-disc list-inside">
                                             @foreach($t->positionen as $pos)
-                                                <li>{{ $pos->menge }}× {{ $pos->product->name }} à {{ $pos->einzelpreis }} Radi</li>
+                                                <li>{{ $pos->menge }}× {{ $pos->product->name ?? '(gelöschtes Produkt)' }} à {{ $pos->einzelpreis }} Radi</li>
                                             @endforeach
                                         </ul>
                                     @endif

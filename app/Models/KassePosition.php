@@ -18,7 +18,9 @@ class KassePosition extends Model
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        // withTrashed: auch soft-gelöschte Produkte laden,
+        // damit alte Verkaufspositionen noch lesbar bleiben
+        return $this->belongsTo(Product::class)->withTrashed();
     }
 }
 

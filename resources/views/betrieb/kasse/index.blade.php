@@ -107,7 +107,31 @@
 
 @push('js')
 <script>
-    let cart = {};
+    // Gespeicherten Warenkorb aus der Datenbank laden
+    let cart = @json($gespeicherterWarenkorb ?: new stdClass());
+    // JSON-Objekt → cart-Format sicherstellen
+    if (Array.isArray(cart)) cart = {};
+
+    const WARENKORB_URL = '{{ route('betrieb.kasse.warenkorb.save') }}';
+    const CSRF_TOKEN    = '{{ csrf_token() }}';
+
+    // Debounce: speichert frühestens 400 ms nach der letzten Änderung
+    let saveTimer = null;
+    function scheduleSync() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(syncWarenkorb, 400);
+    }
+
+    function syncWarenkorb() {
+        fetch(WARENKORB_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+            },
+            body: JSON.stringify({ inhalt: cart }),
+        }).catch(() => { /* Verbindungsfehler still ignorieren */ });
+    }
 
     function addToCart(id, name, price) {
         if (cart[id]) {
@@ -116,6 +140,7 @@
             cart[id] = { id, name, price, menge: 1 };
         }
         renderCart();
+        scheduleSync();
     }
 
     function removeFromCart(id) {
@@ -124,11 +149,13 @@
             if (cart[id].menge <= 0) delete cart[id];
         }
         renderCart();
+        scheduleSync();
     }
 
     function clearCart() {
         cart = {};
         renderCart();
+        scheduleSync();
     }
 
     function renderCart() {
@@ -171,6 +198,9 @@
             inhalt.classList.remove('hidden');
         }
     }
+
+    // Direkt beim Laden rendern (gespeicherter Warenkorb)
+    renderCart();
 </script>
 @endpush
 
