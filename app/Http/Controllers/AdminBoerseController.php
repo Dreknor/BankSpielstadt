@@ -110,76 +110,117 @@ class AdminBoerseController extends Controller
 
     public function dividendeForm()
     {
-        $betriebe = Customer::where('buisness', 1)->whereNotNull('aktien_gesamt')->get();
-        return view('admin.boerse.dividende', compact('betriebe'));
+        $prozent  = config('bank.aktien.dividende_prozent', 20);
+        $betriebe = Customer::where('buisness', 1)
+            ->whereNotNull('aktien_gesamt')
+            ->get()
+            ->map(function (Customer $b) use ($prozent) {
+                $tagesgewinn      = max(0, $b->daily_balance());
+                $anteileVerkauft  = $b->anteileVerkauft();
+                $dividendeGesamt  = (int) floor($tagesgewinn * $prozent / 100);
+                $radiProAnteil    = $anteileVerkauft > 0
+                    ? (int) floor($dividendeGesamt / $anteileVerkauft)
+                    : 0;
+                return [
+                    'betrieb'         => $b,
+                    'tagesgewinn'     => $tagesgewinn,
+                    'anteileVerkauft' => $anteileVerkauft,
+                    'dividendeGesamt' => $dividendeGesamt,
+                    'radiProAnteil'   => $radiProAnteil,
+                    'zahlfaehig'      => $b->balance >= $dividendeGesamt,
+                ];
+            });
+
+        return view('admin.boerse.dividende', compact('betriebe', 'prozent'));
     }
 
     public function dividende(AdminDividendeRequest $request)
     {
-        $betrieb      = Customer::findOrFail($request->buisness_id);
-        abort_unless($betrieb->hatAktien() && $betrieb->is_buisness(), 422);
+        $prozent  = (int) $request->prozent;
+        $betriebe = Customer::where('buisness', 1)
+            ->whereNotNull('aktien_gesamt')
+            ->get();
 
-        $radiProAnteil = $request->radi_pro_anteil;
-        $bestaende     = AktienBestand::where('buisness_id', $betrieb->id)
-            ->where('stueck', '>', 0)->with('kind')->get();
+        $ausgezahlt = 0;
+        $uebersprungen = [];
 
-        if ($bestaende->isEmpty()) {
-            return back()->with(['type' => 'warning',
-                'Meldung' => 'Keine Anteilsinhaber — nichts zu überweisen.']);
-        }
+        DB::transaction(function () use ($betriebe, $prozent, &$ausgezahlt, &$uebersprungen) {
+            foreach ($betriebe as $betrieb) {
+                $tagesgewinn     = max(0, $betrieb->daily_balance());
+                $anteileVerkauft = $betrieb->anteileVerkauft();
 
-        $gesamtSumme = $bestaende->sum(fn($b) => $b->stueck * $radiProAnteil);
+                if ($tagesgewinn <= 0 || $anteileVerkauft <= 0) {
+                    $uebersprungen[] = $betrieb->name . ' (kein Tagesgewinn oder keine Anteile)';
+                    continue;
+                }
 
-        // Betriebskontostand prüfen
-        if ($betrieb->balance < $gesamtSumme) {
-            // Anteilig kürzen
-            $faktor = $gesamtSumme > 0 ? $betrieb->balance / $gesamtSumme : 0;
-            $radiProAnteil = max(1, (int) floor($radiProAnteil * $faktor));
-        }
+                $dividendeGesamt = (int) floor($tagesgewinn * $prozent / 100);
+                $radiProAnteil   = (int) floor($dividendeGesamt / $anteileVerkauft);
 
-        DB::transaction(function () use ($betrieb, $bestaende, $radiProAnteil) {
-            foreach ($bestaende as $bestand) {
-                $betrag = $bestand->stueck * $radiProAnteil;
-                if ($betrag <= 0) continue;
+                if ($radiProAnteil < 1) {
+                    $uebersprungen[] = $betrieb->name . ' (Dividende < 1 Radi je Anteil)';
+                    continue;
+                }
 
-                $kind = $bestand->kind;
+                // Kontostand prüfen — notfalls anteilig kürzen
+                $gesamtSumme = AktienBestand::where('buisness_id', $betrieb->id)
+                    ->where('stueck', '>', 0)->sum(DB::raw('stueck')) * $radiProAnteil;
 
-                // Zeile B (Kind bekommt)
-                $paymentB = Payment::create([
-                    'customer_id' => $kind->id,
-                    'amount'      => $betrag,
-                    'comment'     => "Dividende {$betrieb->name}: {$bestand->stueck} Anteile × {$radiProAnteil} Radi",
-                    'user_id'     => auth()->id() ?? 1,
-                ]);
+                if ($betrieb->balance < $gesamtSumme && $gesamtSumme > 0) {
+                    $faktor        = $betrieb->balance / $gesamtSumme;
+                    $radiProAnteil = max(1, (int) floor($radiProAnteil * $faktor));
+                }
 
-                // Zeile A (Betrieb zahlt)
-                $paymentA = Payment::create([
-                    'customer_id' => $betrieb->id,
-                    'amount'      => -$betrag,
-                    'comment'     => "Dividende {$kind->name}: {$bestand->stueck} Anteile × {$radiProAnteil} Radi",
-                    'payment_id'  => $paymentB->id,
-                    'user_id'     => auth()->id() ?? 1,
-                ]);
+                $bestaende = AktienBestand::where('buisness_id', $betrieb->id)
+                    ->where('stueck', '>', 0)->with('kind')->get();
 
-                $paymentB->update(['payment_id' => $paymentA->id]);
+                foreach ($bestaende as $bestand) {
+                    $betrag = $bestand->stueck * $radiProAnteil;
+                    if ($betrag <= 0) continue;
 
-                AktienTransaktion::create([
-                    'customer_id'  => $kind->id,
-                    'buisness_id'  => $betrieb->id,
-                    'typ'          => 'dividende',
-                    'stueck'       => 0,
-                    'kurs'         => $betrieb->aktien_kurs,
-                    'summe'        => $betrag,
-                    'boerse_rolle' => 'admin',
-                    'payment_id'   => $paymentB->id,
-                    'notiz'        => "{$bestand->stueck} Anteile × {$radiProAnteil} Radi",
-                ]);
+                    $kind = $bestand->kind;
+
+                    $paymentB = Payment::create([
+                        'customer_id' => $kind->id,
+                        'amount'      => $betrag,
+                        'comment'     => "Dividende {$betrieb->name}: {$bestand->stueck} Anteile × {$radiProAnteil} Radi",
+                        'user_id'     => auth()->id() ?? 1,
+                    ]);
+
+                    $paymentA = Payment::create([
+                        'customer_id' => $betrieb->id,
+                        'amount'      => -$betrag,
+                        'comment'     => "Dividende {$kind->name}: {$bestand->stueck} Anteile × {$radiProAnteil} Radi",
+                        'payment_id'  => $paymentB->id,
+                        'user_id'     => auth()->id() ?? 1,
+                    ]);
+
+                    $paymentB->update(['payment_id' => $paymentA->id]);
+
+                    AktienTransaktion::create([
+                        'customer_id'  => $kind->id,
+                        'buisness_id'  => $betrieb->id,
+                        'typ'          => 'dividende',
+                        'stueck'       => 0,
+                        'kurs'         => $betrieb->aktien_kurs,
+                        'summe'        => $betrag,
+                        'boerse_rolle' => 'admin',
+                        'payment_id'   => $paymentB->id,
+                        'notiz'        => "{$bestand->stueck} Anteile × {$radiProAnteil} Radi (Tagesgewinn {$tagesgewinn} Radi, {$prozent}%)",
+                    ]);
+                }
+
+                $ausgezahlt++;
             }
         });
 
+        $msg = "Dividende für {$ausgezahlt} Betrieb(e) ausgezahlt. 🎉";
+        if (!empty($uebersprungen)) {
+            $msg .= ' Übersprungen: ' . implode('; ', $uebersprungen) . '.';
+        }
+
         return redirect('/admin/boerse')
-            ->with(['type' => 'success',
-                'Meldung' => "Dividende für {$betrieb->name} ausgezahlt: {$radiProAnteil} Radi je Anteil. 🎉"]);
+            ->with(['type' => $ausgezahlt > 0 ? 'success' : 'warning', 'Meldung' => $msg]);
     }
 
     public function abschlussForm()
