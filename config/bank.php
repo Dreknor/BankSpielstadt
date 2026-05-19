@@ -38,6 +38,7 @@ return [
         'angestellte_normal'     => env('BOERSE_ANGESTELLTE_NORMAL', 4),   // Normaler Personalstand
         'max_sprung_prozent'     => env('BOERSE_MAX_SPRUNG_PROZENT', 15),  // Maximale Kursänderung in %
         'dividende_prozent'      => env('BOERSE_DIVIDENDE_PROZENT', 20),   // Dividendenanteil am Gewinn in %
+        'anteile_max_delta'      => env('BOERSE_ANTEILE_MAX_DELTA', 2),    // Max. Kurseinfluss durch Anteilsverkauf (±)
         'kasse_warnschwelle'     => env('BOERSE_KASSE_WARNSCHWELLE', 50),  // Börsen-Kassenbestand Warnschwelle (Radi)
         'max_bargeld_invest'     => env('BOERSE_MAX_BARGELD_INVEST', 50),  // Max. Bargeld-Investition je Kauf (Radi)
         'kauf_gebuehr'           => env('BOERSE_KAUF_GEBUEHR', 1),         // Bar-Gebühr je Aktienkauf (zusätzlich zum Kurspreis)

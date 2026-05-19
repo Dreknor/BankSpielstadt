@@ -4,9 +4,10 @@
 {{-- Konfigurationswerte für JS --}}
 <script>
     const BOERSE_CONFIG = {
-        normalAngest:  {{ config('bank.aktien.angestellte_normal', 4) }},
-        maxSprungPct:  {{ config('bank.aktien.max_sprung_prozent', 15) }},
-        minKurs:       {{ config('bank.aktien.min_kurs', 1) }},
+        normalAngest:    {{ config('bank.aktien.angestellte_normal', 4) }},
+        maxSprungPct:    {{ config('bank.aktien.max_sprung_prozent', 15) }},
+        minKurs:         {{ config('bank.aktien.min_kurs', 1) }},
+        anteileMaxDelta: {{ config('bank.aktien.anteile_max_delta', 2) }},
     };
 </script>
 
@@ -47,7 +48,7 @@
                     <label class="block text-sm font-semibold">Angestellte:</label>
                     <input type="number" name="angestellte" min="0" max="50" required
                            id="angestellte-{{ $b->id }}"
-                           oninput="aktualisiereVorschau({{ $b->id }}, {{ $b->aktien_kurs ?? $b->aktien_startkurs ?? 10 }})"
+                           oninput="aktualisiereVorschau({{ $b->id }}, {{ $b->aktien_kurs ?? $b->aktien_startkurs ?? 10 }}, {{ $b->anteileVerkauft() }}, {{ $b->aktien_gesamt ?? 0 }})"
                            class="w-24 text-2xl text-center border-2 border-slate-300 rounded-xl px-2 py-1">
                 </div>
                 <div class="flex-1 min-w-[200px]">
@@ -60,14 +61,23 @@
 
             {{-- Inline-Vorschau (erscheint nach Eingabe) --}}
             <div id="vorschau-{{ $b->id }}"
-                 class="hidden mt-3 grid grid-cols-3 gap-3 rounded-2xl border-2 border-sky-200 bg-sky-50 p-4">
+                 class="hidden mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 rounded-2xl border-2 border-sky-200 bg-sky-50 p-4">
                 <div class="text-center">
                     <div class="text-xs text-slate-500 font-semibold">Aktueller Kurs</div>
                     <div class="text-3xl font-extrabold text-slate-700">{{ $b->aktien_kurs ?? $b->aktien_startkurs ?? 10 }} Radi</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-xs text-slate-500 font-semibold">Kursänderung</div>
+                    <div class="text-xs text-slate-500 font-semibold">Mitarbeiter</div>
                     <div id="vorschau-delta-{{ $b->id }}" class="text-3xl font-extrabold">—</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xs text-slate-500 font-semibold">
+                        Anteile
+                        <span class="block font-normal text-slate-400">
+                            {{ $b->anteileVerkauft() }}/{{ $b->aktien_gesamt }} verkauft
+                        </span>
+                    </div>
+                    <div id="vorschau-anteile-{{ $b->id }}" class="text-3xl font-extrabold">—</div>
                 </div>
                 <div class="text-center">
                     <div class="text-xs text-slate-500 font-semibold">🔮 Neuer Kurs</div>
@@ -80,7 +90,7 @@
 @endif
 
 <script>
-function aktualisiereVorschau(id, alterKurs) {
+function aktualisiereVorschau(id, alterKurs, anteileVerkauft, aktienGesamt) {
     const input = document.getElementById('angestellte-' + id);
     const panel = document.getElementById('vorschau-' + id);
 
@@ -92,32 +102,39 @@ function aktualisiereVorschau(id, alterKurs) {
     const angestellte = parseInt(input.value);
     if (isNaN(angestellte)) { panel.classList.add('hidden'); return; }
 
-    const { normalAngest, maxSprungPct, minKurs } = BOERSE_CONFIG;
+    const { normalAngest, maxSprungPct, minKurs, anteileMaxDelta } = BOERSE_CONFIG;
 
     // Gleiche Formel wie im Controller
-    const delta     = Math.max(-2, Math.min(2, angestellte - normalAngest));
-    const maxSprung = Math.max(1, Math.floor(alterKurs * maxSprungPct / 100));
-    const rohKurs   = alterKurs + delta;
-    const neuerKurs = Math.max(minKurs, Math.max(alterKurs - maxSprung, Math.min(alterKurs + maxSprung, rohKurs)));
+    const angestelltenDelta = Math.max(-2, Math.min(2, angestellte - normalAngest));
 
-    // Anzeige tatsächliche Kursänderung (nicht den Rohwert delta)
+    const anteilePct   = aktienGesamt > 0 ? anteileVerkauft / aktienGesamt : 0;
+    const anteileDelta = Math.max(-anteileMaxDelta,
+        Math.min(anteileMaxDelta, Math.round((anteilePct - 0.5) * anteileMaxDelta * 2)));
+
+    const maxSprung = Math.max(1, Math.floor(alterKurs * maxSprungPct / 100));
+    const rohKurs   = alterKurs + angestelltenDelta + anteileDelta;
+    const neuerKurs = Math.max(minKurs, Math.max(alterKurs - maxSprung, Math.min(alterKurs + maxSprung, rohKurs)));
     const echteAenderung = neuerKurs - alterKurs;
 
-    // Anzeige Einfluss
+    // Mitarbeiter-Einfluss
     const deltaEl = document.getElementById('vorschau-delta-' + id);
-    deltaEl.textContent = (echteAenderung >= 0 ? '+' : '') + echteAenderung;
-    deltaEl.className   = 'text-3xl font-extrabold ' + (echteAenderung > 0 ? 'text-emerald-600' : echteAenderung < 0 ? 'text-rose-600' : 'text-slate-500');
+    deltaEl.textContent = (angestelltenDelta >= 0 ? '+' : '') + angestelltenDelta;
+    deltaEl.className   = 'text-3xl font-extrabold ' + (angestelltenDelta > 0 ? 'text-emerald-600' : angestelltenDelta < 0 ? 'text-rose-600' : 'text-slate-500');
 
-    // Anzeige neuer Kurs
+    // Anteile-Einfluss
+    const anteileEl = document.getElementById('vorschau-anteile-' + id);
+    anteileEl.textContent = (anteileDelta >= 0 ? '+' : '') + anteileDelta;
+    anteileEl.className   = 'text-3xl font-extrabold ' + (anteileDelta > 0 ? 'text-emerald-600' : anteileDelta < 0 ? 'text-rose-600' : 'text-slate-500');
+
+    // Neuer Kurs
     const kursEl = document.getElementById('vorschau-kurs-' + id);
     kursEl.textContent = neuerKurs + ' Radi';
-    kursEl.className   = 'text-3xl font-extrabold ' + (neuerKurs > alterKurs ? 'text-emerald-600' : neuerKurs < alterKurs ? 'text-rose-600' : 'text-slate-500');
+    kursEl.className   = 'text-3xl font-extrabold ' + (echteAenderung > 0 ? 'text-emerald-600' : echteAenderung < 0 ? 'text-rose-600' : 'text-slate-500');
 
-    // Trendtext
     const textEl = document.getElementById('vorschau-text-' + id);
-    if (neuerKurs > alterKurs)      textEl.textContent = '📈 würde steigen';
-    else if (neuerKurs < alterKurs) textEl.textContent = '📉 würde fallen';
-    else                            textEl.textContent = '➡️ unverändert';
+    if (echteAenderung > 0)      textEl.textContent = '📈 würde steigen';
+    else if (echteAenderung < 0) textEl.textContent = '📉 würde fallen';
+    else                          textEl.textContent = '➡️ unverändert';
 
     panel.classList.remove('hidden');
 }

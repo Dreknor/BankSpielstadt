@@ -28,6 +28,7 @@ class AktienKursBerechnen extends Command
         $maxSprungPct   = config('bank.aktien.max_sprung_prozent', 15);
         $minKurs        = config('bank.aktien.min_kurs', 1);
         $normalAngest   = config('bank.aktien.angestellte_normal', 4);
+        $anteileMaxDelta = config('bank.aktien.anteile_max_delta', 2);
 
         foreach ($betriebe as $betrieb) {
             $alterKurs = $betrieb->aktien_kurs ?? $betrieb->aktien_startkurs ?? 10;
@@ -56,8 +57,17 @@ class AktienKursBerechnen extends Command
                 $angestelltenDelta = max(-2, min(2, $letzteBeob - $normalAngest));
             }
 
+            // ── Anteile-Faktor ────────────────────────────────────────────
+            // Wie viel Prozent der Anteile wurden verkauft?
+            // 0 % → −max, 50 % → 0, 100 % → +max
+            $anteilePct    = ($betrieb->aktien_gesamt > 0)
+                ? $betrieb->anteileVerkauft() / $betrieb->aktien_gesamt
+                : 0;
+            $anteileDelta  = (int) round(($anteilePct - 0.5) * $anteileMaxDelta * 2);
+            $anteileDelta  = max(-$anteileMaxDelta, min($anteileMaxDelta, $anteileDelta));
+
             // ── Neuer Kurs ────────────────────────────────────────────────
-            $rohKurs   = $alterKurs + $umsatzDelta + $angestelltenDelta;
+            $rohKurs   = $alterKurs + $umsatzDelta + $angestelltenDelta + $anteileDelta;
             $maxSprung = (int) floor($alterKurs * $maxSprungPct / 100);
             if ($maxSprung < 1) $maxSprung = 1;
 
@@ -79,7 +89,7 @@ class AktienKursBerechnen extends Command
             ]);
 
             $this->info("Betrieb {$betrieb->name}: {$alterKurs} → {$neuerKurs} Radi"
-                . " (Umsatz-Δ: {$umsatzDelta}, Angest.-Δ: {$angestelltenDelta})");
+                . " (Umsatz-Δ: {$umsatzDelta}, Angest.-Δ: {$angestelltenDelta}, Anteile-Δ: {$anteileDelta})");
         }
 
         // Cache leeren damit Dashboard sofort aktualisiert wird

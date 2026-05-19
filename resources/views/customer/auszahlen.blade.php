@@ -10,7 +10,7 @@
                 @csrf
                 <div>
                     <label for="amount" class="label">Wieviele Radi möchte der Kunde abheben?</label>
-                    <input id="amount" type="number" step="0.5" min="0.5"
+                    <input id="amount" type="number" step="1" min="1"
                            max="{{ session('customer')->balance }}"
                            class="field text-2xl" name="amount" autofocus>
                 </div>

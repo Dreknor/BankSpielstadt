@@ -10,7 +10,7 @@
                 @csrf
                 <div>
                     <label for="amount" class="label">Wieviele Radi möchte der Kunde einzahlen?</label>
-                    <input id="amount" type="number" step="0.5" min="0.5"
+                    <input id="amount" type="number" step="1" min="1"
                            @if(session('customer')->buisness) max="1000" @else max="100" @endif
                            class="field text-2xl" name="amount" autofocus>
                 </div>
