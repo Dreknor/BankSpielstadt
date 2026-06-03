@@ -59,6 +59,7 @@ class FotostudioSlideshowController extends Controller
                 'id'    => $b->id,
                 'url'   => $b->url(),
                 'titel' => $b->titel,
+                'dauer' => $b->anzeige_dauer ?? 5,  // Sekunden, Fallback 5
             ]);
 
         return response()->json([

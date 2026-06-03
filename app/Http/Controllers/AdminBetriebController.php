@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Hilferuf;
 use App\Models\KasseTransaktion;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -147,6 +148,81 @@ class AdminBetriebController extends Controller
         }
 
         return back();
+    }
+
+    /** Hilferufe-Übersicht (Admin) */
+    public function hilferufe(Request $request)
+    {
+        $status = $request->input('status', '');
+        $datum  = $request->input('datum', '');
+
+        $query = Hilferuf::with('betrieb')->orderByRaw("FIELD(status,'offen','in_bearbeitung','erledigt')")->orderByDesc('created_at');
+
+        if ($status !== '') {
+            $query->where('status', $status);
+        }
+        if ($datum !== '') {
+            $query->whereDate('created_at', $datum);
+        }
+
+        $hilferufe = $query->get();
+
+        $stats = [
+            'gesamt'         => Hilferuf::count(),
+            'offen'          => Hilferuf::where('status', 'offen')->count(),
+            'in_bearbeitung' => Hilferuf::where('status', 'in_bearbeitung')->count(),
+            'erledigt'       => Hilferuf::where('status', 'erledigt')->count(),
+        ];
+
+        return view('admin.hilferufe', compact('hilferufe', 'stats', 'status', 'datum'));
+    }
+
+    /** Einzelnen Hilferuf löschen (Admin) */
+    public function hilferufeDelete(Hilferuf $hilferuf)
+    {
+        $betriebName = $hilferuf->betrieb->name ?? '–';
+        $hilferuf->delete();
+        return back()->with(['type' => 'warning', 'Meldung' => 'Hilferuf von „' . $betriebName . '" gelöscht.']);
+    }
+
+    /** Alle erledigten Hilferufe löschen (Admin) */
+    public function hilferufeLeeren()
+    {
+        $count = Hilferuf::where('status', 'erledigt')->count();
+        Hilferuf::where('status', 'erledigt')->delete();
+        return back()->with(['type' => 'success', 'Meldung' => $count . ' erledigte Hilferufe gelöscht.']);
+    }
+
+    /** Support-Betrieb-Einstellungen anzeigen */
+    public function support(Customer $customer)
+    {
+        abort_if(! $customer->is_buisness(), 404);
+        $betrieb       = $customer;
+        $supportBetrieb = Customer::supportBetrieb();
+        return view('admin.betrieb_support', compact('betrieb', 'supportBetrieb'));
+    }
+
+    /** Support-Betrieb aktivieren / deaktivieren */
+    public function supportStore(Request $request, Customer $customer)
+    {
+        abort_if(! $customer->is_buisness(), 404);
+        $request->validate(['aktion' => 'required|in:aktivieren,deaktivieren']);
+
+        if ($request->input('aktion') === 'aktivieren') {
+            abort_if(! $customer->betrieb_pin, 422, 'Der Betrieb benötigt zuerst einen Betriebs-PIN.');
+            Customer::where('is_support', true)->update(['is_support' => false]);
+            $customer->update(['is_support' => true]);
+            return back()->with([
+                'type'    => 'success',
+                'Meldung' => $customer->name . ' ist jetzt der Support-Betrieb. Andere Betriebe können dort Hilfe anfordern.',
+            ]);
+        }
+
+        $customer->update(['is_support' => false]);
+        return back()->with([
+            'type'    => 'warning',
+            'Meldung' => 'Support-Markierung für ' . $customer->name . ' entfernt.',
+        ]);
     }
 }
 

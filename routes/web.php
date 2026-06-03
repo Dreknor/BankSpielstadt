@@ -11,6 +11,7 @@ use App\Http\Controllers\Betrieb\ProduktController;
 use App\Http\Controllers\Betrieb\KasseController;
 use App\Http\Controllers\Betrieb\AbrechnungController;
 use App\Http\Controllers\Betrieb\FotostudioController;
+use App\Http\Controllers\Betrieb\HilfeController;
 use App\Http\Controllers\FotostudioSlideshowController;
 use App\Http\Controllers\Boerse\BoerseController;
 use App\Http\Controllers\Boerse\BoerseHandelController;
@@ -165,6 +166,11 @@ Route::prefix('betrieb')->group(function () {
         Route::put('fotos/{bild}',                      [FotostudioController::class, 'update'])->name('betrieb.fotostudio.update');
         Route::delete('fotos/{bild}',                   [FotostudioController::class, 'destroy'])->name('betrieb.fotostudio.destroy');
         Route::post('fotos/reihenfolge',                [FotostudioController::class, 'reihenfolge'])->name('betrieb.fotostudio.reihenfolge');
+
+        // Hilfe / Support
+        Route::get('hilfe',                             [HilfeController::class, 'index'])->name('betrieb.hilfe.index');
+        Route::post('hilfe',                            [HilfeController::class, 'store'])->name('betrieb.hilfe.store');
+        Route::put('hilfe/{hilferuf}',                  [HilfeController::class, 'update'])->name('betrieb.hilfe.update');
     });
 });
 
@@ -183,6 +189,11 @@ Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
     Route::post('betriebe/{customer}/fotostudio',       [AdminBetriebController::class, 'fotostudioStore'])->name('admin.betriebe.fotostudio.store');
     Route::get('betriebe/{customer}/boerse',            [AdminBetriebController::class, 'boerse'])->name('admin.betriebe.boerse');
     Route::post('betriebe/{customer}/boerse',           [AdminBetriebController::class, 'boerseStore'])->name('admin.betriebe.boerse.store');
+    Route::get('betriebe/{customer}/support',           [AdminBetriebController::class, 'support'])->name('admin.betriebe.support');
+    Route::post('betriebe/{customer}/support',          [AdminBetriebController::class, 'supportStore'])->name('admin.betriebe.support.store');
+    Route::get('hilferufe',                             [AdminBetriebController::class, 'hilferufe'])->name('admin.hilferufe');
+    Route::delete('hilferufe/{hilferuf}',               [AdminBetriebController::class, 'hilferufeDelete'])->name('admin.hilferufe.delete');
+    Route::post('hilferufe/leeren',                     [AdminBetriebController::class, 'hilferufeLeeren'])->name('admin.hilferufe.leeren');
 });
 
 /*
@@ -205,6 +216,9 @@ Route::prefix('boerse')->group(function () {
     // Geschützt
     Route::middleware('hasBoerse')->group(function () {
         Route::get('/', [BoerseController::class, 'dashboard'])->name('boerse.index');
+
+        // Hilfe rufen (Börse → Support-Betrieb)
+        Route::post('hilfe', [HilfeController::class, 'storeBoerse'])->name('boerse.hilfe.store');
 
         // Handel
         Route::get('handel',                        [BoerseHandelController::class, 'index'])->name('boerse.handel');

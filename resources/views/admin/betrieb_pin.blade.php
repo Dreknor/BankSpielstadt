@@ -67,6 +67,12 @@
                                         <span class="ml-1 text-xs font-bold">✓</span>
                                     @endif
                                 </a>
+                                <a href="{{ route('admin.betriebe.support', $b) }}" class="btn btn-ghost text-sm py-2 px-3 {{ $b->is_support ? 'bg-rose-100 text-rose-800' : '' }}">
+                                    <i class="fa-solid fa-bell"></i> Support
+                                    @if($b->is_support)
+                                        <span class="ml-1 text-xs font-bold">✓</span>
+                                    @endif
+                                </a>
                             </td>
                         </tr>
                     @endforeach

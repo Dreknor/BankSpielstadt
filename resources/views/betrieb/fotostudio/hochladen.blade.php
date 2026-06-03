@@ -91,6 +91,15 @@
                    value="{{ old('reihenfolge', 0) }}"
                    class="w-32 rounded-xl border-2 border-slate-200 px-4 py-2 text-lg focus:border-emerald-400 focus:outline-none">
         </div>
+        {{-- Anzeigedauer --}}
+        <div>
+            <label for="anzeige_dauer" class="block font-bold text-slate-700 mb-1">
+                Anzeigedauer <span class="text-slate-400 font-normal">(Sekunden, Standard: 5s)</span>
+            </label>
+            <input type="number" name="anzeige_dauer" id="anzeige_dauer" min="0" max="999"
+                   value="{{ old('anzeige_dauer', 0) }}"
+                     class="w-32 rounded-xl border-2 border-slate-200 px-4 py-2 text-lg focus:border-emerald-400 focus:outline-none">
+        </div>
 
         <button type="submit"
                 class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xl rounded-2xl shadow-lg flex items-center justify-center gap-2">

@@ -12,14 +12,15 @@ class FotostudioBild extends Model
 
     protected $fillable = [
         'customer_id', 'titel', 'dateiname', 'pfad',
-        'sichtbar', 'anzeige_von', 'anzeige_bis', 'reihenfolge',
+        'sichtbar', 'anzeige_von', 'anzeige_bis', 'anzeige_dauer', 'reihenfolge',
     ];
 
     protected $casts = [
-        'sichtbar'    => 'boolean',
-        'anzeige_von' => 'datetime',
-        'anzeige_bis' => 'datetime',
-        'reihenfolge' => 'integer',
+        'sichtbar'      => 'boolean',
+        'anzeige_von'   => 'datetime',
+        'anzeige_bis'   => 'datetime',
+        'anzeige_dauer' => 'integer',
+        'reihenfolge'   => 'integer',
     ];
 
     public function customer(): BelongsTo

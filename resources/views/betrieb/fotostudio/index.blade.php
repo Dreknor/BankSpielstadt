@@ -84,6 +84,13 @@
                         </span>
                     @endif
                 </div>
+                <div class="absolute top-2 right-2">
+                    @if($bild->istAktiv())
+                        <span class="bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow">
+                            <i class="fa-solid fa-eye"></i> {{ $bild->anzeige_dauer }} Sek.
+                        </span>
+                    @endif
+                </div>
             </div>
             <div class="p-3 space-y-2">
                 <div class="font-bold text-slate-800 truncate">

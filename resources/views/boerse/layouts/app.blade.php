@@ -13,6 +13,16 @@
 <div class="min-h-screen flex flex-col">
 
     @if(session('boerse'))
+    @php
+        $boerseNavBetrieb     = \App\Models\Customer::boerseBetrieb();
+        $boerseNavSupport     = \App\Models\Customer::supportBetrieb();
+        $boerseNavZeigeHilfe  = $boerseNavSupport && $boerseNavBetrieb;
+        $boerseNavHilferuf    = null;
+        if ($boerseNavZeigeHilfe) {
+            $boerseNavHilferuf = \App\Models\Hilferuf::where('customer_id', $boerseNavBetrieb->id)
+                ->whereIn('status', ['offen', 'in_bearbeitung'])->first();
+        }
+    @endphp
     <nav class="bg-amber-500 text-white shadow-kid">
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-3">
             <a href="/boerse" class="flex items-center gap-3 hover:opacity-90">
@@ -27,10 +37,63 @@
                 <a href="/boerse/anzeige" target="_blank" class="px-3 py-2 rounded-xl hover:bg-amber-600 font-semibold">🖥️ Anzeige</a>
                 <a href="/boerse/hilfe"     class="px-3 py-2 rounded-xl bg-white/20 hover:bg-white/30 font-semibold">❓ Hilfe</a>
                 <span class="bg-white/20 rounded-xl px-3 py-2 font-bold">{{ now()->format('H:i') }} Uhr</span>
-                <a href="/boerse/logout"    class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 font-semibold"><i class="fa-solid fa-right-from-bracket mr-1"></i>Abmelden</a>
+
+                {{-- Hilfe-Button --}}
+                @if($boerseNavZeigeHilfe)
+                    @if($boerseNavHilferuf)
+                        <span class="flex items-center gap-2 bg-rose-400 text-white font-extrabold px-4 py-2 rounded-2xl text-sm animate-pulse">
+                            🆘 {{ $boerseNavHilferuf->status === 'in_bearbeitung' ? 'Helfer unterwegs!' : 'Warten auf Hilfe…' }}
+                        </span>
+                    @else
+                        <button onclick="document.getElementById('boerse-hilfe-modal').classList.remove('hidden')"
+                                class="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white font-extrabold px-4 py-2 rounded-2xl text-sm transition-all shadow">
+                            🆘 Hilfe rufen!
+                        </button>
+                    @endif
+                @endif
+
+                <a href="/boerse/logout" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 font-semibold"><i class="fa-solid fa-right-from-bracket mr-1"></i>Abmelden</a>
             </div>
         </div>
     </nav>
+
+    {{-- Hilfe-Modal --}}
+    @if($boerseNavZeigeHilfe && !$boerseNavHilferuf)
+    <div id="boerse-hilfe-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 space-y-5">
+            <div class="text-center">
+                <div class="text-6xl mb-2">🆘</div>
+                <h2 class="text-3xl font-extrabold text-slate-800">Hilfe rufen</h2>
+                <p class="text-slate-600 mt-1">Ein Helfer kommt dann zu euch!</p>
+            </div>
+            <form action="{{ route('boerse.hilfe.store') }}" method="POST">
+                @csrf
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-lg font-bold text-slate-700 mb-2">
+                            <i class="fa-solid fa-comment mr-1 text-slate-400"></i>
+                            Was ist das Problem? <span class="text-slate-400 font-normal text-base">(optional)</span>
+                        </label>
+                        <textarea name="nachricht" maxlength="500" rows="3"
+                                  placeholder="z. B. Frage zum Kurs, technisches Problem…"
+                                  class="w-full rounded-2xl border-2 border-slate-300 focus:border-rose-400 focus:outline-none p-3 text-lg resize-none"></textarea>
+                    </div>
+                    <div class="flex gap-3">
+                        <button type="submit"
+                                class="flex-1 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white font-extrabold text-xl py-4 rounded-2xl transition-all">
+                            🆘 Hilfe schicken!
+                        </button>
+                        <button type="button"
+                                onclick="document.getElementById('boerse-hilfe-modal').classList.add('hidden')"
+                                class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xl py-4 rounded-2xl transition-all">
+                            Abbrechen
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 
     {{-- Aufgaben-Status-Banner: 3 Kacheln auf jeder Seite --}}
     @isset($aufgabenStatus)

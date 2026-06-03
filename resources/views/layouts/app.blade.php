@@ -52,6 +52,14 @@
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ route('admin.benutzer.index') }}"><i class="fa-solid fa-users-gear mr-2 text-violet-600"></i>Benutzer</a>
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ route('admin.logs') }}"><i class="fa-solid fa-scroll mr-2 text-orange-500"></i>Logs</a>
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ route('admin.betriebe.pin') }}"><i class="fa-solid fa-store mr-2 text-emerald-600"></i>Betriebs-Kassen</a>
+                                @php                                    $hilferufeOffen = \App\Models\Hilferuf::where('status', 'offen')->count();
+                                @endphp
+                                <a class="block px-4 py-3 hover:bg-slate-100 flex items-center justify-between" href="{{ route('admin.hilferufe') }}">
+                                    <span><i class="fa-solid fa-bell mr-2 text-rose-500"></i>Hilferufe</span>
+                                    @if($hilferufeOffen > 0)
+                                        <span class="bg-rose-500 text-white text-xs font-bold px-2 py-1 rounded-full">🔴 {{ $hilferufeOffen }}</span>
+                                    @endif
+                                </a>
                                 @php
                                     try { $boerseAlarm = app(\App\Services\BoerseAufgabenService::class)->alarmCount(); }
                                     catch (\Throwable $e) { $boerseAlarm = 0; }

@@ -135,6 +135,14 @@
         <a href="{{ route('admin.betriebe.pin') }}" class="card p-5 hover:shadow-lg transition text-center font-bold text-emerald-700">
             <i class="fa-solid fa-store block text-2xl mb-2"></i>Betriebs-PINs & Kassen
         </a>
+        @php $hilferufeOffen = \App\Models\Hilferuf::where('status','offen')->count(); @endphp
+        <a href="{{ route('admin.hilferufe') }}" class="card p-5 hover:shadow-lg transition text-center font-bold {{ $hilferufeOffen > 0 ? 'text-rose-700 border-2 border-rose-300 bg-rose-50' : 'text-slate-600' }}">
+            <i class="fa-solid fa-bell block text-2xl mb-2 {{ $hilferufeOffen > 0 ? 'text-rose-500' : '' }}"></i>
+            Hilferufe
+            @if($hilferufeOffen > 0)
+                <span class="inline-block mt-1 bg-rose-500 text-white text-xs font-extrabold px-2 py-1 rounded-full">{{ $hilferufeOffen }} offen</span>
+            @endif
+        </a>
     </div>
 </div>
 @endsection

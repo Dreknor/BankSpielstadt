@@ -52,6 +52,7 @@ class FotostudioController extends Controller
             'anzeige_von' => 'nullable|date',
             'anzeige_bis' => 'nullable|date|after_or_equal:anzeige_von',
             'reihenfolge' => 'nullable|integer|min:0|max:999',
+            'anzeige_dauer' => 'nullable|integer|min:0|max:999',
         ]);
 
         // Zielverzeichnis physisch anlegen (Flysystem-unabhängig)
@@ -81,6 +82,7 @@ class FotostudioController extends Controller
                 'anzeige_von' => $request->input('anzeige_von') ?: null,
                 'anzeige_bis' => $request->input('anzeige_bis') ?: null,
                 'reihenfolge' => (int) ($request->input('reihenfolge', 0)),
+                'anzeige_dauer' => (int) ($request->input('anzeige_dauer', 0)),
             ]);
             $gespeichert++;
         }
@@ -111,6 +113,7 @@ class FotostudioController extends Controller
             'anzeige_von' => 'nullable|date',
             'anzeige_bis' => 'nullable|date|after_or_equal:anzeige_von',
             'reihenfolge' => 'nullable|integer|min:0|max:999',
+            'anzeige_dauer' => 'nullable|integer|min:0|max:999',
         ]);
 
         $bild->update([
@@ -119,6 +122,7 @@ class FotostudioController extends Controller
             'anzeige_von' => $data['anzeige_von'] ?? null,
             'anzeige_bis' => $data['anzeige_bis'] ?? null,
             'reihenfolge' => (int) ($data['reihenfolge'] ?? 0),
+            'anzeige_dauer' => (int) ($data['anzeige_dauer'] ?? 0),
         ]);
 
         return redirect()->route('betrieb.fotostudio.index')

@@ -132,7 +132,7 @@
 
 <script>
 const DATEN_URL     = '{{ url("/fotostudio/{$token}/daten") }}';
-const DAUER_MS      = 7000;   // Anzeigedauer je Bild in Millisekunden
+const DAUER_DEFAULT = 5000;   // Fallback-Anzeigedauer in Millisekunden
 const REFRESH_MS    = 60000;  // Bildliste alle 60 Sek. neu laden
 
 let bilder      = [];
@@ -158,9 +158,9 @@ async function ladeBilder() {
         const data = await res.json();
         const neueBilder = data.bilder ?? [];
 
-        // Slides neu aufbauen, wenn sich Anzahl / URLs geändert haben
-        const alteUrls = bilder.map(b => b.url).join('|');
-        const neueUrls = neueBilder.map(b => b.url).join('|');
+        // Slides neu aufbauen, wenn sich Anzahl / URLs / Dauern geändert haben
+        const alteUrls = bilder.map(b => b.url + ':' + b.dauer).join('|');
+        const neueUrls = neueBilder.map(b => b.url + ':' + b.dauer).join('|');
         if (alteUrls !== neueUrls) {
             bilder = neueBilder;
             bautSlides();
@@ -218,19 +218,26 @@ function naechstesFolie() {
     starteTimer();
 }
 
+function dauerFuerAktuellesFolie() {
+    if (bilder.length === 0) return DAUER_DEFAULT;
+    const sek = bilder[aktuellerIdx]?.dauer;
+    return (sek && sek > 0) ? sek * 1000 : DAUER_DEFAULT;
+}
+
 function starteTimer() {
     clearTimeout(timer);
     clearInterval(fortTimer);
 
-    const balken = document.getElementById('fortschritt');
+    const dauerMs = dauerFuerAktuellesFolie();
+    const balken  = document.getElementById('fortschritt');
     balken.style.transition = 'none';
     balken.style.width = '0';
     // Trigger reflow
     balken.offsetWidth;
-    balken.style.transition = `width ${DAUER_MS}ms linear`;
+    balken.style.transition = `width ${dauerMs}ms linear`;
     balken.style.width = '100%';
 
-    timer = setTimeout(naechstesFolie, DAUER_MS);
+    timer = setTimeout(naechstesFolie, dauerMs);
 }
 
 // ── Tipp für Infoleiste ausblenden (nach 3 Sek.) ─────────────────────────────
