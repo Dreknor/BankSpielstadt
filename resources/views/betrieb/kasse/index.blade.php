@@ -90,11 +90,11 @@
             ])
             <div>
                 <label class="label text-sm">Betrag (Radi)</label>
-                <input type="number" name="amount" min="1" class="field" required>
+                <input type="number" name="amount" min="1" max="999" class="field" required>
             </div>
             <div>
-                <label class="label text-sm">Kommentar (optional)</label>
-                <input type="text" name="comment" class="field" placeholder="z.B. Tagesstartkapital">
+                <label class="label text-sm">Kommentar</label>
+                <input type="text" name="comment" class="field" placeholder="z.B. Tagesstartkapital" required>
             </div>
             <button type="submit" class="btn btn-success w-full">Einlage buchen</button>
         </form>
