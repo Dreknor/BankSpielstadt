@@ -2,7 +2,14 @@
 
 @section('content')
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
+    @if(session('betrieb')->id == 297)
+        <div class="card p-5 bg-rose-50 border-rose-200 text-rose-800">
+            <h2 class="text-2xl font-extrabold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Betrieb wird überwacht
+            </h2>
+            <p class="mb-3">Dieser Betrieb wird aufgrund von vorherigen Unregelmäßigkeiten genau beobachtet. Alle Aktionen werden protokolliert</p>
+        </div>
+    @endif
     {{-- Linke Spalte: Produktgitter --}}
     <div class="card p-5">
         <h2 class="text-2xl font-extrabold mb-4 flex items-center gap-2">
