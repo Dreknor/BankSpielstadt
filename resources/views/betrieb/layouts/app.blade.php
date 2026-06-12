@@ -40,6 +40,16 @@
                 @if($navBetrieb?->isFotostudio())
                 <a href="/betrieb/fotos"      class="px-3 py-2 rounded-xl hover:bg-emerald-700 font-semibold"><i class="fa-solid fa-camera mr-1"></i>Fotos</a>
                 @endif
+                @if($navBetrieb?->isLieferdienst())
+                <a href="/betrieb/lieferbestellungen"
+                   class="relative px-3 py-2 rounded-xl hover:bg-emerald-700 font-semibold">
+                    <i class="fa-solid fa-motorcycle mr-1"></i>Lieferungen
+                    @php $neueBestellungen = \App\Models\Lieferbestellung::where('lieferdienst_id', $navBetrieb->id)->where('status','neu')->count(); @endphp
+                    @if($neueBestellungen > 0)
+                        <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-xs font-extrabold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">{{ $neueBestellungen }}</span>
+                    @endif
+                </a>
+                @endif
                 @if($navBetrieb?->isSupport())
                 <a href="/betrieb/hilfe" class="relative px-3 py-2 rounded-xl hover:bg-emerald-700 font-semibold">
                     <i class="fa-solid fa-bell mr-1"></i>Hilferufe

@@ -14,15 +14,18 @@ class Customer extends Model
 
     protected $fillable = ['name', 'buisness', 'startkapital', 'kredit', 'key', 'export', 'betrieb_pin',
                             'aktien_gesamt', 'aktien_kurs', 'aktien_startkurs', 'aktien_letzte_berechnung',
-                            'is_boerse', 'is_fotostudio', 'fotostudio_token', 'is_support'];
+                            'is_boerse', 'is_fotostudio', 'fotostudio_token', 'is_support',
+                            'is_lieferdienst', 'lieferkosten'];
     protected $visible = ['id','name', 'buisness', 'startkapital', 'kredit','key','export',
-                          'aktien_gesamt', 'aktien_kurs', 'is_boerse', 'is_fotostudio', 'is_support'];
+                          'aktien_gesamt', 'aktien_kurs', 'is_boerse', 'is_fotostudio', 'is_support',
+                          'is_lieferdienst', 'lieferkosten'];
 
     protected $casts = [
-        'is_boerse'     => 'boolean',
-        'is_fotostudio' => 'boolean',
-        'is_support'    => 'boolean',
-        'buisness'      => 'integer',
+        'is_boerse'        => 'boolean',
+        'is_fotostudio'    => 'boolean',
+        'is_support'       => 'boolean',
+        'is_lieferdienst'  => 'boolean',
+        'buisness'         => 'integer',
     ];
 
 
@@ -152,6 +155,23 @@ class Customer extends Model
     public function hilferufe()
     {
         return $this->hasMany(\App\Models\Hilferuf::class, 'customer_id');
+    }
+
+    // ── Lieferdienst ──────────────────────────────────────────────────────────
+
+    public function isLieferdienst(): bool
+    {
+        return (bool) $this->is_lieferdienst;
+    }
+
+    public function lieferprodukte()
+    {
+        return $this->hasMany(LieferdienstProdukt::class, 'lieferdienst_id');
+    }
+
+    public function lieferbestellungen()
+    {
+        return $this->hasMany(Lieferbestellung::class, 'lieferdienst_id');
     }
 
     public function fotostudioBilder()

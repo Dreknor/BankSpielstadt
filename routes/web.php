@@ -10,6 +10,8 @@ use App\Http\Controllers\Betrieb\BetriebController;
 use App\Http\Controllers\Betrieb\ProduktController;
 use App\Http\Controllers\Betrieb\KasseController;
 use App\Http\Controllers\Betrieb\AbrechnungController;
+use App\Http\Controllers\Betrieb\LieferdienstController;
+use App\Http\Controllers\LieferdienstPublicController;
 use App\Http\Controllers\Betrieb\FotostudioController;
 use App\Http\Controllers\Betrieb\HilfeController;
 use App\Http\Controllers\FotostudioSlideshowController;
@@ -46,6 +48,10 @@ Route::post('/kontostand/show', [KontostandController::class, 'auth'])->name('ko
 Route::get('/fotos',                        [FotostudioSlideshowController::class, 'landing'])->name('fotostudio.landing');
 Route::get('/fotostudio/{token}',           [FotostudioSlideshowController::class, 'show'])->name('fotostudio.slideshow');
 Route::get('/fotostudio/{token}/daten',     [FotostudioSlideshowController::class, 'daten'])->name('fotostudio.slideshow.daten');
+
+// Lieferdienst (öffentlich, kein Login nötig)
+Route::get('/lieferdienst/{customer}',          [LieferdienstPublicController::class, 'show'])->name('lieferdienst.show');
+Route::post('/lieferdienst/{customer}/bestellen',[LieferdienstPublicController::class, 'store'])->name('lieferdienst.store');
 
 Route::middleware(['auth'])->group(function (){
 
@@ -171,6 +177,14 @@ Route::prefix('betrieb')->group(function () {
         Route::get('hilfe',                             [HilfeController::class, 'index'])->name('betrieb.hilfe.index');
         Route::post('hilfe',                            [HilfeController::class, 'store'])->name('betrieb.hilfe.store');
         Route::put('hilfe/{hilferuf}',                  [HilfeController::class, 'update'])->name('betrieb.hilfe.update');
+
+        // Lieferdienst
+        Route::get('lieferbestellungen',                [LieferdienstController::class, 'bestellungen'])->name('betrieb.lieferbestellungen');
+        Route::post('lieferbestellungen/{bestellung}/mitarbeiter', [LieferdienstController::class, 'mitarbeiterZuweisen'])->name('betrieb.lieferbestellung.mitarbeiter');
+        Route::post('lieferbestellungen/{bestellung}/status',      [LieferdienstController::class, 'statusAktualisieren'])->name('betrieb.lieferbestellung.status');
+        Route::get('lieferprodukte',                    [LieferdienstController::class, 'produkte'])->name('betrieb.lieferprodukte');
+        Route::post('lieferprodukte',                   [LieferdienstController::class, 'produkteSpeichern'])->name('betrieb.lieferprodukte.store');
+        Route::post('lieferkosten',                     [LieferdienstController::class, 'lieferkostenSpeichern'])->name('betrieb.lieferkosten.store');
     });
 });
 
@@ -191,6 +205,8 @@ Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
     Route::post('betriebe/{customer}/boerse',           [AdminBetriebController::class, 'boerseStore'])->name('admin.betriebe.boerse.store');
     Route::get('betriebe/{customer}/support',           [AdminBetriebController::class, 'support'])->name('admin.betriebe.support');
     Route::post('betriebe/{customer}/support',          [AdminBetriebController::class, 'supportStore'])->name('admin.betriebe.support.store');
+    Route::get('betriebe/{customer}/lieferdienst',      [AdminBetriebController::class, 'lieferdienst'])->name('admin.betriebe.lieferdienst');
+    Route::post('betriebe/{customer}/lieferdienst',     [AdminBetriebController::class, 'lieferdienstStore'])->name('admin.betriebe.lieferdienst.store');
     Route::get('hilferufe',                             [AdminBetriebController::class, 'hilferufe'])->name('admin.hilferufe');
     Route::delete('hilferufe/{hilferuf}',               [AdminBetriebController::class, 'hilferufeDelete'])->name('admin.hilferufe.delete');
     Route::post('hilferufe/leeren',                     [AdminBetriebController::class, 'hilferufeLeeren'])->name('admin.hilferufe.leeren');

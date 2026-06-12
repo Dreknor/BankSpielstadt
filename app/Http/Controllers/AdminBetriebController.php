@@ -202,6 +202,39 @@ class AdminBetriebController extends Controller
         return view('admin.betrieb_support', compact('betrieb', 'supportBetrieb'));
     }
 
+    /** Lieferdienst-Einstellungen anzeigen */
+    public function lieferdienst(Customer $customer)
+    {
+        abort_if(! $customer->is_buisness(), 404);
+        $betrieb = $customer;
+        return view('admin.betrieb_lieferdienst', compact('betrieb'));
+    }
+
+    /** Lieferdienst aktivieren / deaktivieren / Lieferkosten setzen */
+    public function lieferdienstStore(Request $request, Customer $customer)
+    {
+        abort_if(! $customer->is_buisness(), 404);
+        $request->validate(['aktion' => 'required|in:aktivieren,deaktivieren,lieferkosten']);
+
+        switch ($request->input('aktion')) {
+            case 'aktivieren':
+                abort_if(! $customer->betrieb_pin, 422, 'Der Betrieb benötigt zuerst einen Betriebs-PIN.');
+                $customer->update(['is_lieferdienst' => true]);
+                return back()->with(['type' => 'success', 'Meldung' => $customer->name . ' ist jetzt als Lieferdienst markiert.']);
+
+            case 'deaktivieren':
+                $customer->update(['is_lieferdienst' => false]);
+                return back()->with(['type' => 'warning', 'Meldung' => 'Lieferdienst-Markierung für ' . $customer->name . ' entfernt.']);
+
+            case 'lieferkosten':
+                $request->validate(['lieferkosten' => 'required|integer|min:0|max:9999']);
+                $customer->update(['lieferkosten' => $request->lieferkosten]);
+                return back()->with(['type' => 'success', 'Meldung' => 'Lieferkosten auf ' . $request->lieferkosten . ' Radi gesetzt.']);
+        }
+
+        return back();
+    }
+
     /** Support-Betrieb aktivieren / deaktivieren */
     public function supportStore(Request $request, Customer $customer)
     {
