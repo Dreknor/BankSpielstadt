@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminArbeitszeitController;
 use App\Http\Controllers\AdminBenutzerController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminBetriebController;
@@ -93,6 +94,10 @@ Route::middleware(['auth'])->group(function (){
         // Log-Viewer
         Route::get('admin/logs',  [AdminLogController::class, 'index'])->name('admin.logs');
         Route::post('admin/logs/leeren', [AdminLogController::class, 'leeren'])->name('admin.logs.leeren');
+
+        // Arbeitszeit-Auswertung
+        Route::get('admin/arbeitszeiten', [AdminArbeitszeitController::class, 'index'])->name('admin.arbeitszeiten');
+        Route::get('admin/arbeitszeiten/{customer}', [AdminArbeitszeitController::class, 'person'])->name('admin.arbeitszeiten.person');
     });
 
     // Push-Benachrichtigungen (alle eingeloggten User)

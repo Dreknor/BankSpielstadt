@@ -51,6 +51,7 @@
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ url('remove/key') }}"><i class="fa-solid fa-key mr-2 text-brand-600"></i>Key entfernen</a>
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ route('admin.benutzer.index') }}"><i class="fa-solid fa-users-gear mr-2 text-violet-600"></i>Benutzer</a>
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ route('admin.logs') }}"><i class="fa-solid fa-scroll mr-2 text-orange-500"></i>Logs</a>
+                                <a class="block px-4 py-3 hover:bg-slate-100" href="{{ route('admin.arbeitszeiten') }}"><i class="fa-solid fa-clock-rotate-left mr-2 text-sky-600"></i>Arbeitszeiten</a>
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ route('admin.betriebe.pin') }}"><i class="fa-solid fa-store mr-2 text-emerald-600"></i>Betriebs-Kassen</a>
                                 @php                                    $hilferufeOffen = \App\Models\Hilferuf::where('status', 'offen')->count();
                                 @endphp
@@ -95,7 +96,8 @@
                     <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ url('import') }}">Import</a>
                     <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ url('remove/key') }}">Key entfernen</a>
                     <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ route('admin.benutzer.index') }}">Benutzer</a>
-                    <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ route('admin.logs') }}">Logs</a>
+                    <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ url('admin/logs') }}">Logs</a>
+                    <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ route('admin.arbeitszeiten') }}">Arbeitszeiten</a>
                 @endif
                 @if(auth()->user()->is_manager)
                     <a class="block px-3 py-2 rounded-lg hover:bg-brand-700" href="{{ url('create/customer') }}">neuer Kunde</a>
