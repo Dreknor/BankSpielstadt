@@ -68,7 +68,7 @@ Route::middleware(['auth'])->group(function (){
     });
 
     Route::middleware(['isAdmin'])->group(function () {
-        Route::get('dashboard', [AdminController::class, 'index']);
+        Route::get('dashboard', [AdminController::class, 'index'])->name('dashboard');
         Route::get('gebuehr', [AdminController::class, 'gebuehr']);
         Route::get('export', [AdminController::class, 'export']);
         Route::get('deleteStart', [AdminController::class, 'delete']);
