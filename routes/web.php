@@ -213,6 +213,7 @@ Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
     Route::get('betriebe/{customer}/lieferdienst',      [AdminBetriebController::class, 'lieferdienst'])->name('admin.betriebe.lieferdienst');
     Route::post('betriebe/{customer}/lieferdienst',     [AdminBetriebController::class, 'lieferdienstStore'])->name('admin.betriebe.lieferdienst.store');
     Route::get('hilferufe',                             [AdminBetriebController::class, 'hilferufe'])->name('admin.hilferufe');
+    Route::post('hilferufe',                            [AdminBetriebController::class, 'hilferufeStore'])->name('admin.hilferufe.store');
     Route::delete('hilferufe/{hilferuf}',               [AdminBetriebController::class, 'hilferufeDelete'])->name('admin.hilferufe.delete');
     Route::post('hilferufe/leeren',                     [AdminBetriebController::class, 'hilferufeLeeren'])->name('admin.hilferufe.leeren');
 });
