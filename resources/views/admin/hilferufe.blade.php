@@ -72,6 +72,55 @@
         </form>
     </div>
 
+    {{-- Neuen Hilferuf erfassen --}}
+    <div class="card p-5">
+        <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-plus text-rose-500"></i> Neuen Hilferuf erfassen
+        </h2>
+        <form method="POST" action="{{ route('admin.hilferufe.store') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @csrf
+            <div>
+                <label class="label text-sm">Betrieb <span class="text-rose-500">*</span></label>
+                <select name="customer_id" class="field text-sm" required>
+                    <option value="" disabled selected>Betrieb wählen …</option>
+                    @foreach($betriebe as $b)
+                        <option value="{{ $b->id }}" {{ old('customer_id') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
+                    @endforeach
+                </select>
+                @error('customer_id')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label class="label text-sm">Status <span class="text-rose-500">*</span></label>
+                <select name="status" class="field text-sm" required>
+                    <option value="offen"          {{ old('status', 'offen') === 'offen'          ? 'selected' : '' }}>🔴 Offen</option>
+                    <option value="in_bearbeitung" {{ old('status') === 'in_bearbeitung'           ? 'selected' : '' }}>🟡 In Bearbeitung</option>
+                    <option value="erledigt"       {{ old('status') === 'erledigt'                 ? 'selected' : '' }}>🟢 Erledigt</option>
+                </select>
+                @error('status')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label class="label text-sm">Bearbeiter</label>
+                <input type="text" name="bearbeiter" value="{{ old('bearbeiter') }}" class="field text-sm" placeholder="Name des Bearbeiters" maxlength="100">
+                @error('bearbeiter')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+            <div class="sm:col-span-2 lg:col-span-2">
+                <label class="label text-sm">Nachricht</label>
+                <input type="text" name="nachricht" value="{{ old('nachricht') }}" class="field text-sm" placeholder="Optionale Nachricht (max. 500 Zeichen)" maxlength="500">
+                @error('nachricht')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+            <div class="sm:col-span-2 lg:col-span-3">
+                <label class="label text-sm">Interne Notiz</label>
+                <input type="text" name="notiz" value="{{ old('notiz') }}" class="field text-sm" placeholder="Optionale interne Notiz (max. 500 Zeichen)" maxlength="500">
+                @error('notiz')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+            <div class="sm:col-span-2 lg:col-span-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-plus mr-1"></i> Hilferuf erfassen
+                </button>
+            </div>
+        </form>
+    </div>
+
     {{-- Tabelle --}}
     <div class="card overflow-x-auto">
         <table class="min-w-full text-left text-sm" id="hilferufeTable">
