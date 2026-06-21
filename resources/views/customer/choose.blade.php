@@ -16,8 +16,8 @@
                 </div>
             @endif
             <form autocomplete="off">
-                <label class="label" for="search">Bitte Name eingeben</label>
-                <input id="search" class="field text-xl" autofocus type="text" autocomplete="off" placeholder="z. B. Lisa">
+                <label class="label" for="search">Bitte Name oder Key eingeben</label>
+                <input id="search" class="field text-xl" autofocus type="text" autocomplete="off" placeholder="z. B. Lisa oder Key">
             </form>
         </div>
         <div class="p-6 pt-0">
@@ -43,7 +43,8 @@
             items.forEach(item => {
                 const li = document.createElement('li');
                 li.className = 'p-4 hover:bg-brand-50 cursor-pointer font-semibold text-lg flex items-center gap-3';
-                li.innerHTML = '<i class="fa-solid fa-user text-brand-600"></i>' + (item.name || item);
+                const keyHint = item.key ? '<span class="text-sm font-normal text-slate-400 ml-1">(Key: ' + item.key + ')</span>' : '';
+                li.innerHTML = '<i class="fa-solid fa-user text-brand-600"></i>' + (item.name || item) + keyHint;
                 li.addEventListener('click', () => {
                     window.location.href = baseUrl + '/' + item.id;
                 });
@@ -60,9 +61,7 @@
                 fetch(route + '?query=' + encodeURIComponent(q) + '&name=' + encodeURIComponent(q))
                     .then(r => r.json())
                     .then(items => {
-                        // Client-Filter, falls Backend ohne Filter alle liefert
-                        const filtered = (items || []).filter(it => (it.name || '').toLowerCase().includes(q));
-                        render(filtered.slice(0, 20));
+                        render((items || []).slice(0, 20));
                     })
                     .catch(() => {});
             }, 150);

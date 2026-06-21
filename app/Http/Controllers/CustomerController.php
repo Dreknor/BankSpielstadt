@@ -98,7 +98,9 @@ class CustomerController extends Controller
     public function search(Request $request)
     {
         $query = $request->get('name');
-        $filterResult = Customer::where('name', 'LIKE', '%'. $query. '%')->get();
+        $filterResult = Customer::where('name', 'LIKE', '%' . $query . '%')
+            ->orWhere('key', 'LIKE', '%' . $query . '%')
+            ->get();
         return response()->json($filterResult);
     }
 
