@@ -72,10 +72,22 @@ class PaymentController extends Controller
     }
 
     public function einzahlen(){
+        if (!auth()->user()->kann_einzahlen) {
+            return redirect(url('/'))->with([
+                'type'    => 'error',
+                'Meldung' => 'Du darfst keine Einzahlungen durchführen.',
+            ]);
+        }
         return view('customer.einzahlen');
     }
 
     public function storeEinzahlen(PaymentRequest $request){
+        if (!auth()->user()->kann_einzahlen) {
+            return redirect(url('/'))->with([
+                'type'    => 'error',
+                'Meldung' => 'Du darfst keine Einzahlungen durchführen.',
+            ]);
+        }
 
             $Einzahlung =$request->amount;
 
@@ -146,6 +158,12 @@ class PaymentController extends Controller
     }
 
     public function auszahlen(){
+        if (!auth()->user()->kann_auszahlen) {
+            return redirect(url('/'))->with([
+                'type'    => 'error',
+                'Meldung' => 'Du darfst keine Auszahlungen durchführen.',
+            ]);
+        }
         return view('customer.auszahlen');
     }
 
@@ -176,6 +194,13 @@ class PaymentController extends Controller
     }
 
     public function storeAuszahlen(PaymentRequest $request){
+
+        if (!auth()->user()->kann_auszahlen) {
+            return redirect(url('/'))->with([
+                'type'    => 'error',
+                'Meldung' => 'Du darfst keine Auszahlungen durchführen.',
+            ]);
+        }
 
         if ($request->amount > session('customer')->balance){
             return redirect()->back()->with([

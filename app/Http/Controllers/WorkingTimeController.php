@@ -30,6 +30,13 @@ class WorkingTimeController extends Controller
      */
     public function create()
     {
+        if (!auth()->user()->kann_arbeitszeit) {
+            return redirect(url('/'))->with([
+                'type'    => 'error',
+                'Meldung' => 'Du darfst keine Arbeitszeiten erfassen.',
+            ]);
+        }
+
         $lastWorking_time = session('customer')->working_times->last();
 
         if (!is_null($lastWorking_time)){
@@ -52,6 +59,13 @@ class WorkingTimeController extends Controller
      */
     public function store(WorkingTimeRequest $request)
     {
+        if (!auth()->user()->kann_arbeitszeit) {
+            return redirect(url('/'))->with([
+                'type'    => 'error',
+                'Meldung' => 'Du darfst keine Arbeitszeiten erfassen.',
+            ]);
+        }
+
         $customer = session('customer');
 
         $startdate = Carbon::today()->startOfWeek();

@@ -23,6 +23,9 @@ class User extends Authenticatable
         'password',
         'is_manager',
         'is_admin',
+        'kann_einzahlen',
+        'kann_auszahlen',
+        'kann_arbeitszeit',
     ];
 
     /**
@@ -42,8 +45,11 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'is_admin' => 'boolean',
-        'is_manager' => 'boolean',
+        'is_admin'          => 'boolean',
+        'is_manager'        => 'boolean',
+        'kann_einzahlen'    => 'boolean',
+        'kann_auszahlen'    => 'boolean',
+        'kann_arbeitszeit'  => 'boolean',
     ];
 
     public function is_manager(){

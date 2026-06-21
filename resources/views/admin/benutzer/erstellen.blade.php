@@ -73,6 +73,38 @@
                         <strong>Admin</strong> – darf alles verwalten (nur für Lehrkräfte!)
                     </span>
                 </label>
+
+                <hr class="border-slate-200">
+
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="hidden" name="kann_einzahlen" value="0">
+                    <input type="checkbox" name="kann_einzahlen" value="1"
+                           {{ old('kann_einzahlen', '1') ? 'checked' : '' }}
+                           class="w-5 h-5 rounded accent-sky-600">
+                    <span class="text-sm">
+                        <strong>Einzahlen</strong> – darf Geld einzahlen
+                    </span>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="hidden" name="kann_auszahlen" value="0">
+                    <input type="checkbox" name="kann_auszahlen" value="1"
+                           {{ old('kann_auszahlen', '1') ? 'checked' : '' }}
+                           class="w-5 h-5 rounded accent-orange-600">
+                    <span class="text-sm">
+                        <strong>Auszahlen</strong> – darf Geld auszahlen
+                    </span>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="hidden" name="kann_arbeitszeit" value="0">
+                    <input type="checkbox" name="kann_arbeitszeit" value="1"
+                           {{ old('kann_arbeitszeit', '1') ? 'checked' : '' }}
+                           class="w-5 h-5 rounded accent-violet-600">
+                    <span class="text-sm">
+                        <strong>Arbeitszeit</strong> – darf Arbeitszeiten erfassen und Lohn berechnen
+                    </span>
+                </label>
             </div>
 
             <button type="submit"

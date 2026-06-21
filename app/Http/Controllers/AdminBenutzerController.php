@@ -25,19 +25,25 @@ class AdminBenutzerController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email',
-            'password'   => ['required', 'confirmed', Password::min(8)],
-            'is_admin'   => 'boolean',
-            'is_manager' => 'boolean',
+            'name'             => 'required|string|max:255',
+            'email'            => 'required|email|unique:users,email',
+            'password'         => ['required', 'confirmed', Password::min(8)],
+            'is_admin'         => 'boolean',
+            'is_manager'       => 'boolean',
+            'kann_einzahlen'   => 'boolean',
+            'kann_auszahlen'   => 'boolean',
+            'kann_arbeitszeit' => 'boolean',
         ]);
 
         User::create([
-            'name'       => $request->name,
-            'email'      => $request->email,
-            'password'   => Hash::make($request->password),
-            'is_admin'   => $request->boolean('is_admin'),
-            'is_manager' => $request->boolean('is_manager'),
+            'name'             => $request->name,
+            'email'            => $request->email,
+            'password'         => Hash::make($request->password),
+            'is_admin'         => $request->boolean('is_admin'),
+            'is_manager'       => $request->boolean('is_manager'),
+            'kann_einzahlen'   => $request->boolean('kann_einzahlen'),
+            'kann_auszahlen'   => $request->boolean('kann_auszahlen'),
+            'kann_arbeitszeit' => $request->boolean('kann_arbeitszeit'),
         ]);
 
         return redirect()->route('admin.benutzer.index')->with([
@@ -54,11 +60,14 @@ class AdminBenutzerController extends Controller
     public function update(Request $request, User $benutzer): RedirectResponse
     {
         $request->validate([
-            'name'       => 'required|string|max:255',
-            'email'      => "required|email|unique:users,email,{$benutzer->id}",
-            'password'   => ['nullable', 'confirmed', Password::min(8)],
-            'is_admin'   => 'boolean',
-            'is_manager' => 'boolean',
+            'name'             => 'required|string|max:255',
+            'email'            => "required|email|unique:users,email,{$benutzer->id}",
+            'password'         => ['nullable', 'confirmed', Password::min(8)],
+            'is_admin'         => 'boolean',
+            'is_manager'       => 'boolean',
+            'kann_einzahlen'   => 'boolean',
+            'kann_auszahlen'   => 'boolean',
+            'kann_arbeitszeit' => 'boolean',
         ]);
 
         // Verhindern, dass man seinen eigenen Admin-Status entzieht
@@ -67,10 +76,13 @@ class AdminBenutzerController extends Controller
         $isManager = $istSelbst ? $benutzer->is_manager : $request->boolean('is_manager');
 
         $daten = [
-            'name'       => $request->name,
-            'email'      => $request->email,
-            'is_admin'   => $isAdmin,
-            'is_manager' => $isManager,
+            'name'             => $request->name,
+            'email'            => $request->email,
+            'is_admin'         => $isAdmin,
+            'is_manager'       => $isManager,
+            'kann_einzahlen'   => $request->boolean('kann_einzahlen'),
+            'kann_auszahlen'   => $request->boolean('kann_auszahlen'),
+            'kann_arbeitszeit' => $request->boolean('kann_arbeitszeit'),
         ];
 
         if (filled($request->password)) {

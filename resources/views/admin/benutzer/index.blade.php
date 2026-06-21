@@ -22,6 +22,9 @@
                     <th class="px-4 py-3 text-left font-semibold text-slate-600">E-Mail</th>
                     <th class="px-4 py-3 text-center font-semibold text-slate-600">Admin</th>
                     <th class="px-4 py-3 text-center font-semibold text-slate-600">Manager</th>
+                    <th class="px-4 py-3 text-center font-semibold text-slate-600">Einzahlen</th>
+                    <th class="px-4 py-3 text-center font-semibold text-slate-600">Auszahlen</th>
+                    <th class="px-4 py-3 text-center font-semibold text-slate-600">Arbeitszeit</th>
                     <th class="px-4 py-3 text-right font-semibold text-slate-600">Aktionen</th>
                 </tr>
             </thead>
@@ -53,6 +56,33 @@
                                 <span class="text-slate-300">—</span>
                             @endif
                         </td>
+                        <td class="px-4 py-3 text-center">
+                            @if($user->kann_einzahlen)
+                                <span class="inline-flex items-center gap-1 text-xs font-bold text-sky-600 bg-sky-50 px-2 py-1 rounded-full">
+                                    <i class="fa-solid fa-arrow-down-to-line"></i> Ja
+                                </span>
+                            @else
+                                <span class="text-slate-300">—</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            @if($user->kann_auszahlen)
+                                <span class="inline-flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-full">
+                                    <i class="fa-solid fa-arrow-up-from-line"></i> Ja
+                                </span>
+                            @else
+                                <span class="text-slate-300">—</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            @if($user->kann_arbeitszeit)
+                                <span class="inline-flex items-center gap-1 text-xs font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-full">
+                                    <i class="fa-solid fa-clock"></i> Ja
+                                </span>
+                            @else
+                                <span class="text-slate-300">—</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-3 text-right">
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{{ route('admin.benutzer.edit', $user) }}"
@@ -74,7 +104,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-slate-400">
+                        <td colspan="8" class="px-4 py-8 text-center text-slate-400">
                             Noch keine Benutzer vorhanden.
                         </td>
                     </tr>
