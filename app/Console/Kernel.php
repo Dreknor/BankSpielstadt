@@ -16,7 +16,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         //$schedule->command('aktien:kurs-berechnen')->hourly();
-        $schedule->command('aktien:kurs-berechnen')->everythirtyMinutes()->between('08:30', '12:00');
+        $schedule->command('aktien:kurs-berechnen')->weekdays()->everythirtyMinutes()->between('08:30', '12:00');
     }
 
     /**
