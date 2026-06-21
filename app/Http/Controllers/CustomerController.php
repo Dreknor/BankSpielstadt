@@ -119,5 +119,32 @@ class CustomerController extends Controller
         return redirect(url('/'));
     }
 
+    /**
+     * Wird aufgerufen, wenn das Suchformular abgeschickt wird (z. B. automatisch durch NFC-Chip).
+     * Findet einen Kunden anhand des exakten Keys und wählt ihn direkt aus.
+     */
+    public function chooseByKey(Request $request){
+        $suche = trim($request->input('suche', ''));
+
+        if ($suche === '') {
+            return redirect(url('choose/customer'))->with([
+                'type'    => 'warning',
+                'Meldung' => 'Bitte einen Namen oder Chip scannen.',
+            ]);
+        }
+
+        $customer = Customer::where('key', $suche)->first();
+
+        if ($customer) {
+            Session::put('customer', $customer);
+            return redirect(url('/'));
+        }
+
+        return redirect(url('choose/customer'))->with([
+            'type'    => 'error',
+            'Meldung' => 'Kein Kunde mit diesem Chip gefunden. Bitte den Namen in der Liste auswählen.',
+        ]);
+    }
+
 
 }

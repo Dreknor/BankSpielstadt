@@ -15,9 +15,10 @@
                     {{ session('status') }}
                 </div>
             @endif
-            <form autocomplete="off">
-                <label class="label" for="search">Bitte Name oder Key eingeben</label>
-                <input id="search" class="field text-xl" autofocus type="text" autocomplete="off" placeholder="z. B. Lisa oder Key">
+            <form method="POST" action="{{ url('choose/customer') }}" autocomplete="off">
+                @csrf
+                <label class="label" for="search">Bitte Name oder Chip scannen</label>
+                <input id="search" name="suche" class="field text-xl" autofocus type="text" autocomplete="off" placeholder="z. B. Lisa oder Chip scannen">
             </form>
         </div>
         <div class="p-6 pt-0">
