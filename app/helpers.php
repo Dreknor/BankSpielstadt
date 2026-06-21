@@ -1,6 +1,6 @@
 <?php
 if (! function_exists('payments_per_hour')) {
-    function payments_per_hour(\Illuminate\Database\Eloquent\Collection $payments, Int $getHour = null) {
+    function payments_per_hour(\Illuminate\Database\Eloquent\Collection $payments, ?int $getHour = null) {
 
         $array = [];
 

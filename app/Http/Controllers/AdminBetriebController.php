@@ -174,7 +174,31 @@ class AdminBetriebController extends Controller
             'erledigt'       => Hilferuf::where('status', 'erledigt')->count(),
         ];
 
-        return view('admin.hilferufe', compact('hilferufe', 'stats', 'status', 'datum'));
+        $betriebe = Customer::buisness()->orderBy('name')->get();
+
+        return view('admin.hilferufe', compact('hilferufe', 'stats', 'status', 'datum', 'betriebe'));
+    }
+
+    /** Neuen Hilferuf als Admin erfassen */
+    public function hilferufeStore(Request $request)
+    {
+        $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'nachricht'   => 'nullable|string|max:500',
+            'status'      => 'required|in:offen,in_bearbeitung,erledigt',
+            'bearbeiter'  => 'nullable|string|max:100',
+            'notiz'       => 'nullable|string|max:500',
+        ]);
+
+        Hilferuf::create([
+            'customer_id' => $request->input('customer_id'),
+            'nachricht'   => $request->input('nachricht') ?: null,
+            'status'      => $request->input('status'),
+            'bearbeiter'  => $request->input('bearbeiter') ?: null,
+            'notiz'       => $request->input('notiz') ?: null,
+        ]);
+
+        return back()->with(['type' => 'success', 'Meldung' => '🆘 Hilferuf wurde erfasst.']);
     }
 
     /** Einzelnen Hilferuf löschen (Admin) */
