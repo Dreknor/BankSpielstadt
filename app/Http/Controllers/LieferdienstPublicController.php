@@ -39,7 +39,7 @@ class LieferdienstPublicController extends Controller
             'lieferort'      => 'required|string|min:2|max:200',
             'positionen'     => 'required|array|min:1',
             'positionen.*.product_id' => 'required|integer|exists:products,id',
-            'positionen.*.menge'      => 'required|integer|min:1|max:99',
+            'positionen.*.menge'      => 'required|integer|min:0|max:99',
         ], [
             'besteller_name.required' => 'Bitte deinen Namen eingeben.',
             'besteller_name.min'      => 'Der Name muss mindestens 2 Buchstaben haben.',
