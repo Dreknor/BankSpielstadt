@@ -24,12 +24,11 @@ class BoerseKasseController extends Controller
     {
         $person = \App\Models\Customer::findOrFail($request->ausgefuehrt_von);
 
-        BoerseKasse::create([
+        BoerseKasse::buchen([
             'typ'             => 'einlage',
-            'betrag'          => $request->betrag,
+            'betrag'          => (int) $request->betrag,
             'notiz'           => ($request->notiz ?: 'Bareinlage') . ' – ' . $person->name,
             'ausgefuehrt_von' => $person->id,
-            'created_at'      => now(),
         ]);
         $service->clearCache();
         return redirect('/boerse/kasse')
@@ -46,12 +45,11 @@ class BoerseKasseController extends Controller
 
         $person = \App\Models\Customer::findOrFail($request->ausgefuehrt_von);
 
-        BoerseKasse::create([
+        BoerseKasse::buchen([
             'typ'             => 'entnahme',
-            'betrag'          => $request->betrag,
+            'betrag'          => (int) $request->betrag,
             'notiz'           => ($request->notiz ?: 'Entnahme') . ' – ' . $person->name,
             'ausgefuehrt_von' => $person->id,
-            'created_at'      => now(),
         ]);
         $service->clearCache();
         return redirect('/boerse/kasse')

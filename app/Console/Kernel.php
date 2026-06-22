@@ -15,8 +15,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        $von = config('bank.aktien.fixing_von', '06:00');
+        $bis = config('bank.aktien.fixing_bis', '16:00');
+
         //$schedule->command('aktien:kurs-berechnen')->hourly();
-        $schedule->command('aktien:kurs-berechnen')->weekdays()->everythirtyMinutes()->between('08:00', '12:00');
+        $schedule->command('aktien:kurs-berechnen')
+            ->weekdays()
+            ->everyThirtyMinutes()
+            ->between($von, $bis);
     }
 
     /**

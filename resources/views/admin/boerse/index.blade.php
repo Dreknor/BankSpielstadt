@@ -16,6 +16,7 @@
                 <a href="/admin/boerse/abschluss/vorbereiten" class="btn">🏁 Schlussabrechnung</a>
                 <a href="/admin/boerse/pin"               class="btn">🔑 PIN ändern</a>
                 <a href="/admin/boerse/bericht"           class="btn">📋 Bericht</a>
+                <a href="/admin/boerse/arbitrage"         class="btn">🔍 Arbitrage</a>
                 <a href="/admin/boerse/aufgaben"          class="btn {{ $alarmCount > 0 ? 'bg-rose-500 text-white' : '' }}">🚨 Aufgaben-Status</a>
             </div>
         </div>

@@ -30,6 +30,18 @@ class BoerseErfassungController extends Controller
         ]);
 
         // ── Kursberechnung ────────────────────────────────────────────────────
+        // (C) kurs_nur_fixing = true → Beobachtung wird nur gesammelt; der Kurs
+        //     ändert sich ausschließlich beim zentralen Fixing (Scheduler).
+        //     So ist Sofort-Arbitrage durch gezielte Beobachtungs-Spams unmöglich.
+        if (config('bank.aktien.kurs_nur_fixing', true)) {
+            $service->clearCache();
+            return redirect('/boerse/erfassung')
+                ->with(['type' => 'success',
+                    'Meldung' => "✅ Beobachtung für {$customer->name} gespeichert: {$request->angestellte} Angestellte. "
+                               . "Der Kurs wird beim nächsten Fixing automatisch angepasst."]);
+        }
+
+        // Fallback: Direktberechnung nur wenn kurs_nur_fixing = false (Legacy/Debug)
         $alterKurs       = $customer->aktien_kurs ?? $customer->aktien_startkurs ?? 10;
         $normalAngest    = config('bank.aktien.angestellte_normal', 4);
         $maxSprungPct    = config('bank.aktien.max_sprung_prozent', 15);

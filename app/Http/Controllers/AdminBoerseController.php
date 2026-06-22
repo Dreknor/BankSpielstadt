@@ -115,7 +115,7 @@ class AdminBoerseController extends Controller
             ->whereNotNull('aktien_gesamt')
             ->get()
             ->map(function (Customer $b) use ($prozent) {
-                $tagesgewinn      = max(0, $b->daily_balance());
+                $tagesgewinn      = max(0, $b->operativerTagesgewinn());
                 $anteileVerkauft  = $b->anteileVerkauft();
                 $dividendeGesamt  = (int) floor($tagesgewinn * $prozent / 100);
                 $radiProAnteil    = $anteileVerkauft > 0
@@ -146,7 +146,7 @@ class AdminBoerseController extends Controller
 
         DB::transaction(function () use ($betriebe, $prozent, &$ausgezahlt, &$uebersprungen) {
             foreach ($betriebe as $betrieb) {
-                $tagesgewinn     = max(0, $betrieb->daily_balance());
+                $tagesgewinn     = max(0, $betrieb->operativerTagesgewinn());
                 $anteileVerkauft = $betrieb->anteileVerkauft();
 
                 if ($tagesgewinn <= 0 || $anteileVerkauft <= 0) {
@@ -290,11 +290,10 @@ class AdminBoerseController extends Controller
                 ]);
 
                 // Börsen-Kasse zahlt Bargeld an das Kind aus
-                BoerseKasse::create([
-                    'typ'        => 'abschluss_auszahlung',
-                    'betrag'     => $betrag,
-                    'notiz'      => "{$bestand->kind->name}: {$bestand->stueck} Anteile {$bestand->betrieb->name}",
-                    'created_at' => now(),
+                BoerseKasse::buchen([
+                    'typ'    => 'abschluss_auszahlung',
+                    'betrag' => $betrag,
+                    'notiz'  => "{$bestand->kind->name}: {$bestand->stueck} Anteile {$bestand->betrieb->name}",
                 ]);
 
                 // Verknüpfte Kontoeinträge: Betrieb −betrag, Börse +betrag
@@ -384,6 +383,25 @@ class AdminBoerseController extends Controller
             ->whereDate('created_at', today())->sum('betrag');
         return view('admin.boerse.bericht',
             compact('betriebe', 'transaktionen', 'kassenstand', 'kassenbewegungen', 'gebuehrSumme'));
+    }
+
+    public function arbitrageAuswertung()
+    {
+        $paare = \App\Console\Commands\AktienArbitrageReport::berechne(null);
+
+        // Summierung verdächtiger Gewinne je Kind
+        $summierung = $paare->where('verdaechtig', true)
+            ->groupBy('customer_id')
+            ->map(fn($g) => [
+                'kind'          => $g->first()['kind'],
+                'customer_id'   => $g->first()['customer_id'],
+                'gewinn_gesamt' => $g->sum('gewinn_gesamt'),
+                'anzahl'        => $g->count(),
+            ])
+            ->sortByDesc('gewinn_gesamt')
+            ->values();
+
+        return view('admin.boerse.arbitrage', compact('paare', 'summierung'));
     }
 }
 

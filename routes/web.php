@@ -298,5 +298,6 @@ Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
     Route::post('boerse/markierung',                [AdminBoerseController::class, 'setBoerseBetrieb']);
     Route::post('boerse/markierung/entfernen',      [AdminBoerseController::class, 'clearBoerseBetrieb']);
     Route::get('boerse/bericht',                    [AdminBoerseController::class, 'bericht']);
+    Route::get('boerse/arbitrage',                  [AdminBoerseController::class, 'arbitrageAuswertung'])->name('admin.boerse.arbitrage');
 });
 
