@@ -77,10 +77,19 @@ class WorkingTimeController extends Controller
         $end_working->setHour($request->end_hour);
         $end_working->setMinutes($request->end_minute);
 
-        if ($end_working->lessThan($start_working)){
-            return redirect()->back()->with([
+        // Endzeit darf nicht vor der Anfangszeit liegen
+        if ($end_working->lessThanOrEqualTo($start_working)){
+            return redirect()->back()->withInput()->with([
                 'type' => 'danger',
-                'Meldung' => "Die Endzeit darf nicht vor der Anfangszeit liegen"
+                'Meldung' => "Die Endzeit darf nicht vor oder auf der gleichen Zeit wie die Anfangszeit liegen."
+            ]);
+        }
+
+        // Endzeit darf nicht in der Zukunft liegen (Tag wird berücksichtigt)
+        if ($end_working->greaterThan(Carbon::now())) {
+            return redirect()->back()->withInput()->with([
+                'type' => 'danger',
+                'Meldung' => "Die Endzeit liegt in der Zukunft! Bitte gib nur Zeiten ein, die bereits vergangen sind."
             ]);
         }
 
@@ -112,7 +121,7 @@ class WorkingTimeController extends Controller
         $customer = session('customer');
 
         if ($buisness->balance < $Lohn){
-            return redirect()->back()->with([
+            return redirect()->back()->withInput()->with([
                 'type' => 'danger',
                 'Meldung' => "Der Betrieb hat nicht genügend Geld um den Lohn zu bezahlen!"
             ]);
@@ -134,7 +143,7 @@ class WorkingTimeController extends Controller
             ->count();
 
         if ($working_times > 0){
-            return redirect()->back()->with([
+            return redirect()->back()->withInput()->with([
                 'type' => 'danger',
                 'Meldung' => "Es gibt bereits eine Arbeitszeit während dieses Zeitraumes. Der Arbeiter kann nicht an 2 Stellen gleichzeitig gearbeitet haben."
             ]);
