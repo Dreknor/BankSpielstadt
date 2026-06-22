@@ -72,9 +72,7 @@
                                     @endif
                                 </a>
                             @endif
-                            @if(auth()->user()->is_manager)
                                 <a class="block px-4 py-3 hover:bg-slate-100" href="{{ url('create/customer') }}"><i class="fa-solid fa-user-plus mr-2 text-brand-600"></i>neuer Kunde</a>
-                            @endif
                             <a class="block px-4 py-3 hover:bg-rose-50 text-rose-600 font-semibold"
                                href="{{ route('logout') }}"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
