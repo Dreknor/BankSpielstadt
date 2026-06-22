@@ -111,10 +111,6 @@
 
     function suchen() {
         const q = input.value.trim();
-        if (q.length < 1 && !zeigeStueck) { // Bei Verkauf/Rückkauf: leer = Top-20 zeigen
-            list.classList.add('hidden');
-            return;
-        }
         fetch(endpoint + (endpoint.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(q))
             .then(r => r.json())
             .then(items => renderList(items))
@@ -126,7 +122,7 @@
         timer = setTimeout(suchen, 200);
     });
     input.addEventListener('focus', () => {
-        if (zeigeStueck) suchen(); // sofort Top-20 anbieten
+        suchen(); // sofort Vorschläge anbieten
     });
     document.addEventListener('click', (e) => {
         if (!e.target.closest('[data-kindsuche="' + prefix + '"]')) {

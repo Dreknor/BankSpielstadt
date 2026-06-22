@@ -93,9 +93,9 @@ class WorkingTimeController extends Controller
         }
 
         if ($request->manager == 1){
-            $StdLohn = 4;
+            $StdLohn = config('bank.lohn.chef', 7);
         } else {
-            $StdLohn = 3;
+            $StdLohn = config('bank.lohn.mitarbeiter', 6);
         }
 
         if (isset($bonus) && $bonus->bonus_type == 'hourly'){
