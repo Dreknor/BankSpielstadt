@@ -57,7 +57,7 @@ class BoerseKasseAbgleichen extends Command
 
         // --- Rückberechnung ---
         if ($befuellen) {
-            $this->rückberechnen();
+            $this->backfillSaldoNach();
             // Danach neu lesen
             $letzterEintrag = BoerseKasse::orderBy('id', 'desc')->first();
             $letztesSaldo   = $letzterEintrag?->saldo_nach;
@@ -80,7 +80,7 @@ class BoerseKasseAbgleichen extends Command
         return 0;
     }
 
-    private function rückberechnen(): void
+    private function backfillSaldoNach(): void
     {
         $this->info('Rückberechne saldo_nach für alle Einträge...');
 

@@ -112,7 +112,7 @@ class AktienArbitrageReport extends Command
             $vkQuery->whereDate('created_at', $datum);
         }
 
-        $alleVerkäufe = $vkQuery->get();
+        $alleVerkaufe = $vkQuery->get();
 
         // FIFO-Queues je (customer_id, buisness_id) aufbauen
         $queues = [];
@@ -126,7 +126,7 @@ class AktienArbitrageReport extends Command
 
         $paare = collect();
 
-        foreach ($alleVerkäufe as $vk) {
+        foreach ($alleVerkaufe as $vk) {
             $key = $vk->customer_id . '_' . $vk->buisness_id;
 
             if (empty($queues[$key])) {
