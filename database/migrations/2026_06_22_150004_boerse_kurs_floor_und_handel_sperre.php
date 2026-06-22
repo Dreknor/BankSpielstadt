@@ -37,7 +37,10 @@ return new class extends Migration
             ->get(['id', 'name', 'aktien_kurs']);
 
         foreach ($betriebe as $betrieb) {
+
             $alterKurs = (int) $betrieb->aktien_kurs;
+
+            \Illuminate\Support\Facades\Log::debug("Kurskorrektur: Betrieb '{$betrieb->name}' (ID {$betrieb->id}) hatte Aktienkurs {$alterKurs} Radi, wird auf Mindestkurs {$minKurs} Radi gesetzt.");
 
             DB::table('customers')->where('id', $betrieb->id)
                 ->update(['aktien_kurs' => $minKurs]);
