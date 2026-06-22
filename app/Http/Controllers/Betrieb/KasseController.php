@@ -97,6 +97,7 @@ class KasseController extends Controller
     {
         $q = trim((string) $request->get('q', ''));
         $kunden = Customer::where('buisness', 0)
+            ->orWhere('buisness', null)
             ->when($q !== '', fn($query) => $query->where('name', 'LIKE', '%' . $q . '%'))
             ->limit(20)
             ->get(['id', 'name']);
