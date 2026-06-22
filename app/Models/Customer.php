@@ -62,6 +62,29 @@ class Customer extends Model
 
     }
 
+    /**
+     * Operativer Tagesgewinn als Basis für die Dividende.
+     *
+     * Klammert reine Börsen-Kapitalflüsse aus (Anteilskauf/-verkauf/-rückkauf,
+     * Dividende, Schlussabrechnung). Sonst würde eingesammeltes Anlegergeld als
+     * "Gewinn" gewertet und die Dividende auf Kapital statt auf echten Umsatz
+     * gezahlt werden.
+     */
+    public function operativerTagesgewinn($day = null)
+    {
+        if ($day == null) {
+            $day = Carbon::today();
+        }
+        return (int) $this->payments()
+                ->whereDate('created_at', '=', $day)
+                ->whereNot('comment', 'LIKE', 'Kredit')
+                ->whereNot('comment', 'LIKE', 'Startkapital')
+                ->whereNot('comment', 'LIKE', 'Börse:%')
+                ->whereNot('comment', 'LIKE', 'Dividende%')
+                ->whereNot('comment', 'LIKE', 'Schlussabrechnung%')
+                ->sum('amount');
+    }
+
     public function getBalanceAttribute()
     {
         return $this->payments()

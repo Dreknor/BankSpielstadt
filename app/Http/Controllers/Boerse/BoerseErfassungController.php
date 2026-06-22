@@ -34,18 +34,11 @@ class BoerseErfassungController extends Controller
         $normalAngest    = config('bank.aktien.angestellte_normal', 4);
         $maxSprungPct    = config('bank.aktien.max_sprung_prozent', 15);
         $minKurs         = config('bank.aktien.min_kurs', 1);
-        $anteileMaxDelta = config('bank.aktien.anteile_max_delta', 2);
 
         $angestelltenDelta = max(-2, min(2, (int) $request->angestellte - $normalAngest));
 
-        $anteilePct   = ($customer->aktien_gesamt > 0)
-            ? $customer->anteileVerkauft() / $customer->aktien_gesamt
-            : 0;
-        $anteileDelta = (int) round(($anteilePct - 0.5) * $anteileMaxDelta * 2);
-        $anteileDelta = max(-$anteileMaxDelta, min($anteileMaxDelta, $anteileDelta));
-
         $maxSprung = max(1, (int) floor($alterKurs * $maxSprungPct / 100));
-        $rohKurs   = $alterKurs + $angestelltenDelta + $anteileDelta;
+        $rohKurs   = $alterKurs + $angestelltenDelta;
         $neuerKurs = max($minKurs,
                         max($alterKurs - $maxSprung,
                             min($alterKurs + $maxSprung, $rohKurs)));
@@ -82,27 +75,20 @@ class BoerseErfassungController extends Controller
         $maxSprungPct    = config('bank.aktien.max_sprung_prozent', 15);
         $minKurs         = config('bank.aktien.min_kurs', 1);
         $normalAngest    = config('bank.aktien.angestellte_normal', 4);
-        $anteileMaxDelta = config('bank.aktien.anteile_max_delta', 2);
         $letzteBeob      = $customer->letzteBeobachtung();
 
         $angestelltenDelta = $letzteBeob !== null
             ? max(-2, min(2, $letzteBeob - $normalAngest))
             : 0;
 
-        $anteilePct   = ($customer->aktien_gesamt > 0)
-            ? $customer->anteileVerkauft() / $customer->aktien_gesamt
-            : 0;
-        $anteileDelta = (int) round(($anteilePct - 0.5) * $anteileMaxDelta * 2);
-        $anteileDelta = max(-$anteileMaxDelta, min($anteileMaxDelta, $anteileDelta));
-
         $maxSprung    = max(1, (int) floor($alterKurs * $maxSprungPct / 100));
-        $rohKurs      = $alterKurs + $angestelltenDelta + $anteileDelta;
+        $rohKurs      = $alterKurs + $angestelltenDelta;
         $vorschauKurs = max($minKurs, max($alterKurs - $maxSprung, min($alterKurs + $maxSprung, $rohKurs)));
 
         $aufgabenStatus = app(BoerseAufgabenService::class)->status();
         return view('boerse.erfassung.vorschau', compact(
             'customer', 'alterKurs', 'vorschauKurs', 'letzteBeob',
-            'angestelltenDelta', 'anteileDelta', 'aufgabenStatus'
+            'angestelltenDelta', 'aufgabenStatus'
         ));
     }
 }

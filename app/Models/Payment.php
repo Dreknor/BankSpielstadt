@@ -13,6 +13,11 @@ class Payment extends Model
 
     protected $fillable = ['customer_id', 'source_id', 'amount', 'comment', 'user_id', 'payment_id'];
 
+    // Geld ist in der Spielstadt immer ganzzahlig (Scheine 1/5/10/20 Radi).
+    protected $casts = [
+        'amount' => 'integer',
+    ];
+
     public function customer(){
         return $this->belongsTo(Customer::class);
     }

@@ -10,6 +10,10 @@ class AktienBestand extends Model
 
     protected $fillable = ['customer_id', 'buisness_id', 'stueck'];
 
+    protected $casts = [
+        'stueck' => 'integer',
+    ];
+
     public function kind()
     {
         return $this->belongsTo(Customer::class, 'customer_id');

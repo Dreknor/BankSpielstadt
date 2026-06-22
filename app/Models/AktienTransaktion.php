@@ -16,6 +16,12 @@ class AktienTransaktion extends Model
         'kurs', 'summe', 'boerse_rolle', 'payment_id', 'notiz',
     ];
 
+    protected $casts = [
+        'stueck' => 'integer',
+        'kurs'   => 'integer',
+        'summe'  => 'integer',
+    ];
+
     public function kind()
     {
         return $this->belongsTo(Customer::class, 'customer_id');

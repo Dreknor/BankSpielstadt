@@ -42,6 +42,26 @@ return [
         'kasse_warnschwelle'     => env('BOERSE_KASSE_WARNSCHWELLE', 50),  // Börsen-Kassenbestand Warnschwelle (Radi)
         'max_bargeld_invest'     => env('BOERSE_MAX_BARGELD_INVEST', 50),  // Max. Bargeld-Investition je Kauf (Radi)
         'kauf_gebuehr'           => env('BOERSE_KAUF_GEBUEHR', 1),         // Bar-Gebühr je Aktienkauf (zusätzlich zum Kurspreis)
+
+        // ── Anti-Arbitrage (Empfehlung A + C) ─────────────────────────────────
+        // (A) Verkaufs-Spread: Beim Verkauf zahlt die Börse pro Anteil so viele
+        //     Radi weniger als der aktuelle Kurs. Das ist die Spanne, an der die
+        //     Börse verdient – und die schnelles "billig kaufen, teuer verkaufen"
+        //     unrentabel macht. Gilt nicht unter dem Mindestkurs.
+        'verkauf_spread'         => env('BOERSE_VERKAUF_SPREAD', 1),       // Radi je Anteil
+        // (C) Kurs ändert sich NUR beim zentralen Fixing (Stundentakt), nicht
+        //     mehr sofort bei jeder Beobachtung. Beobachtungen werden gesammelt
+        //     und fließen beim nächsten Fixing in den Kurs ein.
+        'kurs_nur_fixing'        => env('BOERSE_KURS_NUR_FIXING', true),
+
+        // ── Fixing-Zeitfenster (für den Scheduler) ────────────────────────────
+        'fixing_von'             => env('BOERSE_FIXING_VON', '08:30'),
+        'fixing_bis'             => env('BOERSE_FIXING_BIS', '12:00'),
+
+        // ── Schwellen für die Missbrauchs-Auswertung ──────────────────────────
+        'arbitrage_schnellverkauf_min' => env('BOERSE_ARBITRAGE_SCHNELL_MIN', 30), // Haltedauer < x Min = "Schnellverkauf"
+        'arbitrage_min_gewinn'         => env('BOERSE_ARBITRAGE_MIN_GEWINN', 1),   // ab x Radi Kursgewinn melden
+
         'aufgaben' => [
             'beobachtung_warn_min'      => env('BOERSE_BEOBACHTUNG_WARN_MIN', 75),
             'beobachtung_alarm_min'     => env('BOERSE_BEOBACHTUNG_ALARM_MIN', 90),
