@@ -36,7 +36,9 @@ class CustomerController extends Controller
         }
 
         $request->validate([
-            'key' => 'required|string|min:8'
+            'key' => 'required|string|min:8|unique:customers,key'
+        ], [
+            'key.unique' => 'Dieser Key ist bereits vergeben.',
         ]);
 
         $customer->update([
