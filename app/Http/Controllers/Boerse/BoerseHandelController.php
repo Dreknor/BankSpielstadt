@@ -33,7 +33,9 @@ class BoerseHandelController extends Controller
     public function searchKinder(\Illuminate\Http\Request $request)
     {
         $q = trim((string) $request->get('q', ''));
-        $kinder = Customer::where('buisness', 0)
+        $kinder = Customer::where(function ($query) {
+                $query->where('buisness', 0)->orWhereNull('buisness');
+            })
             ->when(mb_strlen($q) >= 1, fn($query) => $query->where('name', 'LIKE', '%' . $q . '%'))
             ->limit(100)
             ->get(['id', 'name']);
