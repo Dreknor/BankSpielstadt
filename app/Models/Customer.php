@@ -14,18 +14,19 @@ class Customer extends Model
 
     protected $fillable = ['name', 'buisness', 'startkapital', 'kredit', 'key', 'export', 'betrieb_pin',
                             'aktien_gesamt', 'aktien_kurs', 'aktien_startkurs', 'aktien_letzte_berechnung',
-                            'is_boerse', 'is_fotostudio', 'fotostudio_token', 'is_support',
+                            'is_boerse', 'boerse_handel_gesperrt', 'is_fotostudio', 'fotostudio_token', 'is_support',
                             'is_lieferdienst', 'lieferkosten'];
     protected $visible = ['id','name', 'buisness', 'startkapital', 'kredit','key','export',
                           'aktien_gesamt', 'aktien_kurs', 'is_boerse', 'is_fotostudio', 'is_support',
                           'is_lieferdienst', 'lieferkosten'];
 
     protected $casts = [
-        'is_boerse'        => 'boolean',
-        'is_fotostudio'    => 'boolean',
-        'is_support'       => 'boolean',
-        'is_lieferdienst'  => 'boolean',
-        'buisness'         => 'integer',
+        'is_boerse'               => 'boolean',
+        'boerse_handel_gesperrt'  => 'boolean',
+        'is_fotostudio'           => 'boolean',
+        'is_support'              => 'boolean',
+        'is_lieferdienst'         => 'boolean',
+        'buisness'                => 'integer',
     ];
 
 
@@ -158,6 +159,32 @@ class Customer extends Model
     public function isBoerse(): bool
     {
         return (bool) $this->is_boerse;
+    }
+
+    /** Gibt true zurück, wenn dieses Kind/dieser Betrieb vom Börsenhandel ausgeschlossen ist. */
+    public function handelGesperrt(): bool
+    {
+        return (bool) ($this->boerse_handel_gesperrt ?? false);
+    }
+
+    /**
+     * Gewichteter Durchschnittskaufkurs dieses Kunden für einen bestimmten Betrieb.
+     * Basis: alle nicht-gelöschten Kauf-Transaktionen.
+     * Wird beim Verkauf als Preisdeckel verwendet (kein Gewinn über Einkaufspreis).
+     */
+    public function avgKaufKurs(int $buisnessId): int
+    {
+        $row = AktienTransaktion::where('customer_id', $this->id)
+            ->where('buisness_id', $buisnessId)
+            ->whereNull('deleted_at')
+            ->where('typ', 'kauf')
+            ->selectRaw('SUM(summe) AS total_summe, SUM(stueck) AS total_stueck')
+            ->first();
+
+        if (!$row || (int) $row->total_stueck === 0) {
+            return 0;
+        }
+        return (int) ceil($row->total_summe / $row->total_stueck);
     }
 
     public function isFotostudio(): bool

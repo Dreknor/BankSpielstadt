@@ -33,7 +33,7 @@ return [
     'aktien' => [
         'boerse_pin'             => env('BOERSE_PIN', '1234'),
         'standard_gesamt'        => env('BOERSE_STANDARD_GESAMT', 100),    // Gesamtanzahl Aktien je Unternehmen
-        'min_kurs'               => env('BOERSE_MIN_KURS', 1),             // Mindestkurs in Radi
+        'min_kurs'               => env('BOERSE_MIN_KURS', 4),             // Mindestkurs in Radi (nie unter 4 Radi)
         'kurs_teiler'            => env('BOERSE_KURS_TEILER', 20),         // Teiler für Kursberechnung
         'angestellte_normal'     => env('BOERSE_ANGESTELLTE_NORMAL', 4),   // Normaler Personalstand
         'max_sprung_prozent'     => env('BOERSE_MAX_SPRUNG_PROZENT', 15),  // Maximale Kursänderung in %
@@ -42,6 +42,7 @@ return [
         'kasse_warnschwelle'     => env('BOERSE_KASSE_WARNSCHWELLE', 50),  // Börsen-Kassenbestand Warnschwelle (Radi)
         'max_bargeld_invest'     => env('BOERSE_MAX_BARGELD_INVEST', 50),  // Max. Bargeld-Investition je Kauf (Radi)
         'kauf_gebuehr'           => env('BOERSE_KAUF_GEBUEHR', 1),         // Bar-Gebühr je Aktienkauf (zusätzlich zum Kurspreis)
+        'max_anteile_je_kind'    => env('BOERSE_MAX_ANTEILE_JE_KIND', 5), // Max. Anteile je Kind pro Betrieb
 
         // ── Anti-Arbitrage (Empfehlung A + C) ─────────────────────────────────
         // (A) Verkaufs-Spread: Beim Verkauf zahlt die Börse pro Anteil so viele

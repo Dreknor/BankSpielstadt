@@ -88,10 +88,27 @@ class BoerseHandelController extends Controller
                 'Meldung' => '⚠️ Kein Börsen-Konto eingerichtet! Bitte den Admin kontaktieren (Admin → Börse → Einstellungen).']);
         }
 
+        // Handelssperre prüfen
+        if ($kind->handelGesperrt()) {
+            return back()->with(['type' => 'error',
+                'Meldung' => "⛔ {$kind->name} ist vom Börsenhandel ausgeschlossen und darf keine Anteile kaufen."]);
+        }
+
         // Vorab-Prüfung Eigenbestand (für schnelle UX; die harte Prüfung folgt unter Lock)
         if ($customer->anteileEigen() < $stueck) {
             return back()->with(['type' => 'error',
                 'Meldung' => "Das {$customer->name} hat nicht genug freie Anteile! Noch verfügbar: {$customer->anteileEigen()}."]);
+        }
+
+        // Vorab-Prüfung Obergrenze je Kind
+        $maxAnteile   = (int) config('bank.aktien.max_anteile_je_kind', 10);
+        $vorabBestand = (int) (AktienBestand::where('customer_id', $kind->id)
+            ->where('buisness_id', $customer->id)->value('stueck') ?? 0);
+        if ($vorabBestand + $stueck > $maxAnteile) {
+            $nochMoeglich = max(0, $maxAnteile - $vorabBestand);
+            return back()->with(['type' => 'error',
+                'Meldung' => "{$kind->name} darf höchstens {$maxAnteile} Anteile von {$customer->name} besitzen "
+                           . "(aktuell: {$vorabBestand}, noch möglich: {$nochMoeglich})."]);
         }
 
         // Soft-Limit Warnung (kein harter Stop) – inkl. Gebühr
@@ -123,6 +140,18 @@ class BoerseHandelController extends Controller
                 if ($eigen < $stueck) {
                     throw new BoerseException(
                         "Das {$betrieb->name} hat nicht genug freie Anteile! Noch verfügbar: {$eigen}.");
+                }
+
+                // Harte Obergrenze je Kind unter Lock.
+                $maxAnteile     = (int) config('bank.aktien.max_anteile_je_kind', 10);
+                $bestandVorher  = AktienBestand::where('customer_id', $kind->id)
+                    ->where('buisness_id', $betrieb->id)->lockForUpdate()->first();
+                $aktuellerBestand = (int) ($bestandVorher?->stueck ?? 0);
+                if ($aktuellerBestand + $stueck > $maxAnteile) {
+                    $nochMoeglich = max(0, $maxAnteile - $aktuellerBestand);
+                    throw new BoerseException(
+                        "{$kind->name} darf höchstens {$maxAnteile} Anteile von {$betrieb->name} besitzen "
+                        . "(aktuell: {$aktuellerBestand}, noch möglich: {$nochMoeglich}).");
                 }
 
                 $transaktion = AktienTransaktion::create([
@@ -171,7 +200,7 @@ class BoerseHandelController extends Controller
                 ]);
                 $payBetrieb->update(['payment_id' => $payBoerse->id]);
 
-                $bestand = AktienBestand::firstOrCreate(
+                $bestand = $bestandVorher ?? AktienBestand::firstOrCreate(
                     ['customer_id' => $kind->id, 'buisness_id' => $betrieb->id],
                     ['stueck' => 0]
                 );
@@ -224,7 +253,13 @@ class BoerseHandelController extends Controller
                 'Meldung' => "{$kind->name} hat nicht genug Anteile! Bestand: " . ($vorab?->stueck ?? 0) . "."]);
         }
 
-        $minKurs = (int) config('bank.aktien.min_kurs', 1);
+        // Handelssperre prüfen
+        if ($kind->handelGesperrt()) {
+            return back()->with(['type' => 'error',
+                'Meldung' => "⛔ {$kind->name} ist vom Börsenhandel ausgeschlossen und darf keine Anteile verkaufen."]);
+        }
+
+        $minKurs = (int) config('bank.aktien.min_kurs', 4);
         $spread  = (int) config('bank.aktien.verkauf_spread', 1);
         $ergebnis = [];
 
@@ -243,7 +278,16 @@ class BoerseHandelController extends Controller
                 // (A) Verkaufs-Spread: Börse zahlt pro Anteil `spread` Radi unter Kurs
                 //     aus (nie unter Mindestkurs). Killt das Sofort-Arbitrage.
                 $kurs        = (int) $betrieb->aktien_kurs;
-                $verkaufKurs = max($minKurs, $kurs - $spread);
+                $normalKurs  = max($minKurs, $kurs - $spread);
+
+                // (B) Einkaufspreis-Cap: Wer Anteile zu einem günstigeren Kurs als
+                //     den aktuellen Mindestkurs gekauft hat, bekommt beim Verkauf
+                //     höchstens seinen Einkaufspreis zurück — kein Windfall-Gewinn
+                //     durch künstlich angehobene Kursuntergrenze.
+                $avgKauf     = $kind->avgKaufKurs($betrieb->id);
+                $verkaufKurs = ($avgKauf > 0 && $avgKauf < $normalKurs)
+                    ? $avgKauf
+                    : $normalKurs;
                 $summe       = $stueck * $verkaufKurs;
 
                 $kassenstand = BoerseKasse::kassenstand();
@@ -294,16 +338,23 @@ class BoerseHandelController extends Controller
 
                 $bestand->decrement('stueck', $stueck);
 
-                $ergebnis = ['summe' => $summe, 'kurs' => $kurs, 'verkaufKurs' => $verkaufKurs];
+                $ergebnis = ['summe' => $summe, 'kurs' => $kurs, 'verkaufKurs' => $verkaufKurs,
+                            'durch_einkauf_gedeckelt' => ($avgKauf > 0 && $avgKauf < $normalKurs)];
             });
         } catch (BoerseException $e) {
             return back()->with(['type' => 'error', 'Meldung' => $e->getMessage()]);
         }
 
         $summe    = $ergebnis['summe'];
-        $spreadInfo = $spread > 0
-            ? " (Verkaufskurs {$ergebnis['verkaufKurs']} Radi · {$spread} Radi Spread je Anteil)"
-            : '';
+        $vk       = $ergebnis['verkaufKurs'];
+        $kursAkt  = $ergebnis['kurs'];
+        if ($ergebnis['durch_einkauf_gedeckelt'] ?? false) {
+            $spreadInfo = " (Verkaufskurs {$vk} Radi — gedeckelt auf Einkaufspreis)";
+        } elseif ($spread > 0) {
+            $spreadInfo = " (Verkaufskurs {$vk} Radi · {$spread} Radi Spread je Anteil)";
+        } else {
+            $spreadInfo = '';
+        }
 
         return redirect('/boerse/handel')
             ->with(['type' => 'success',

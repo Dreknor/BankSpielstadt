@@ -299,5 +299,7 @@ Route::middleware(['auth', 'isAdmin'])->prefix('admin')->group(function () {
     Route::post('boerse/markierung/entfernen',      [AdminBoerseController::class, 'clearBoerseBetrieb']);
     Route::get('boerse/bericht',                    [AdminBoerseController::class, 'bericht']);
     Route::get('boerse/arbitrage',                  [AdminBoerseController::class, 'arbitrageAuswertung'])->name('admin.boerse.arbitrage');
+    Route::get('boerse/handel-sperre',              [AdminBoerseController::class, 'handelSperreForm'])->name('admin.boerse.handelsperre');
+    Route::post('boerse/{customer}/handel-sperre',  [AdminBoerseController::class, 'handelSperreToggle'])->name('admin.boerse.handelsperre.toggle');
 });
 

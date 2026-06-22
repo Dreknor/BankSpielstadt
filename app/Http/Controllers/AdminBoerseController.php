@@ -403,6 +403,28 @@ class AdminBoerseController extends Controller
 
         return view('admin.boerse.arbitrage', compact('paare', 'summierung'));
     }
+
+    /** Liste aller Kinder mit Sperr-Status + Toggle-Buttons */
+    public function handelSperreForm()
+    {
+        $kinder = Customer::where(function ($q) {
+            $q->where('buisness', 0)->orWhereNull('buisness');
+        })->get();
+
+        return view('admin.boerse.handel_sperre', compact('kinder'));
+    }
+
+    /** Sperrt oder entsperrt einen einzelnen Kunden für den Börsenhandel */
+    public function handelSperreToggle(Customer $customer)
+    {
+        $neu = ! $customer->handelGesperrt();
+        $customer->update(['boerse_handel_gesperrt' => $neu]);
+
+        $aktion = $neu ? 'gesperrt' : 'entsperrt';
+        return redirect('/admin/boerse/handel-sperre')
+            ->with(['type' => $neu ? 'warning' : 'success',
+                'Meldung' => "{$customer->name} wurde für den Börsenhandel {$aktion}."]);
+    }
 }
 
 
