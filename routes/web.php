@@ -63,9 +63,11 @@ Route::middleware(['auth'])->group(function (){
     Route::post('choose/customer', [CustomerController::class, 'chooseByKey']);
     Route::get('/autocomplete-search', [CustomerController::class, 'search']);
 
+
+    Route::get('create/customer', [CustomerController::class, 'createCustomer']);
+    Route::post('customer/store', [CustomerController::class, 'store']);
     Route::middleware(['isManager'])->group(function () {
-        Route::get('create/customer', [CustomerController::class, 'createCustomer']);
-        Route::post('customer/store', [CustomerController::class, 'store']);
+
     });
 
     Route::middleware(['isAdmin'])->group(function () {

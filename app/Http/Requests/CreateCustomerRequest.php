@@ -13,8 +13,7 @@ class CreateCustomerRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check() and auth()->user()->is_manager;
-
+        return auth()->check();
     }
 
     /**
