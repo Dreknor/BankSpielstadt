@@ -3,8 +3,10 @@
 <div class="card p-6 space-y-4">
     <h2 class="text-2xl font-extrabold">🏁 Schlussabrechnung — Spielende</h2>
     <p class="text-slate-600">
-        Beim Klick auf „Jetzt abrechnen" werden <b>alle Anteile zum aktuellen Kurs</b>
-        in Bargeld umgewandelt. Die Auszahlung erfolgt physisch aus der Börsen-Kasse.
+        Beim Klick auf „Jetzt abrechnen" werden <b>alle Anteile</b> in Bargeld umgewandelt.
+        Der Auszahlungspreis richtet sich nach dem <b>Einkaufspreis</b>: War der Einkaufspreis
+        unter dem Mindest-Aktienpreis, wird nur der Einkaufspreis ausgezahlt —
+        andernfalls gilt der aktuelle Kurs.
     </p>
 
     <div class="grid grid-cols-2 gap-4">

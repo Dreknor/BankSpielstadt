@@ -225,12 +225,18 @@ class AdminBoerseController extends Controller
 
     public function abschlussForm()
     {
-        $betriebe        = Customer::where('buisness', 1)->whereNotNull('aktien_gesamt')->get();
-        $kassenstand     = BoerseKasse::kassenstand();
+        $betriebe         = Customer::where('buisness', 1)->whereNotNull('aktien_gesamt')->get();
+        $kassenstand      = BoerseKasse::kassenstand();
+        $minKurs          = (int) config('bank.aktien.min_kurs', 4);
         $gesamtAuszahlung = AktienBestand::where('stueck', '>', 0)
+            ->with(['betrieb', 'kind'])
             ->get()
-            ->sum(function ($b) {
-                return $b->stueck * ($b->betrieb->aktien_kurs ?? 0);
+            ->sum(function ($b) use ($minKurs) {
+                $avgKauf = $b->kind->avgKaufKurs($b->buisness_id);
+                $kurs    = ($avgKauf > 0 && $avgKauf < $minKurs)
+                    ? $avgKauf
+                    : ($b->betrieb->aktien_kurs ?? 0);
+                return $b->stueck * $kurs;
             });
         return view('admin.boerse.abschluss',
             compact('betriebe', 'kassenstand', 'gesamtAuszahlung'));
@@ -240,7 +246,14 @@ class AdminBoerseController extends Controller
     {
         $kassenstand      = BoerseKasse::kassenstand();
         $bestaende        = AktienBestand::where('stueck', '>', 0)->with(['kind', 'betrieb'])->get();
-        $gesamtAuszahlung = $bestaende->sum(fn($b) => $b->stueck * ($b->betrieb->aktien_kurs ?? 0));
+        $minKurs          = (int) config('bank.aktien.min_kurs', 4);
+        $gesamtAuszahlung = $bestaende->sum(function ($b) use ($minKurs) {
+            $avgKauf = $b->kind->avgKaufKurs($b->buisness_id);
+            $kurs    = ($avgKauf > 0 && $avgKauf < $minKurs)
+                ? $avgKauf
+                : ($b->betrieb->aktien_kurs ?? 0);
+            return $b->stueck * $kurs;
+        });
 
         // Börsen-Konto muss eingerichtet sein
         $boerse = Customer::boerseBetrieb();
@@ -257,9 +270,15 @@ class AdminBoerseController extends Controller
         // Prüfen ob alle Betriebe genug Kontostand haben
         $betriebeZuArmut = $bestaende
             ->groupBy('buisness_id')
-            ->filter(function ($gruppe) {
+            ->filter(function ($gruppe) use ($minKurs) {
                 $betrieb   = $gruppe->first()->betrieb;
-                $benoetigt = $gruppe->sum(fn($b) => $b->stueck * ($betrieb->aktien_kurs ?? 0));
+                $benoetigt = $gruppe->sum(function ($b) use ($minKurs) {
+                    $avgKauf = $b->kind->avgKaufKurs($b->buisness_id);
+                    $kurs    = ($avgKauf > 0 && $avgKauf < $minKurs)
+                        ? $avgKauf
+                        : ($b->betrieb->aktien_kurs ?? 0);
+                    return $b->stueck * $kurs;
+                });
                 return $betrieb->balance < $benoetigt;
             });
 
@@ -269,10 +288,14 @@ class AdminBoerseController extends Controller
                 'Meldung' => "Folgende Betriebe haben nicht genug Geld auf ihrem Konto für die Schlussabrechnung: {$namen}. Bitte erst Dividenden auszahlen oder Konten auffüllen."]);
         }
 
-        DB::transaction(function () use ($boerse) {
+        DB::transaction(function () use ($boerse, $minKurs) {
             $bestaende = AktienBestand::where('stueck', '>', 0)->with(['kind', 'betrieb'])->get();
             foreach ($bestaende as $bestand) {
-                $betrag = $bestand->stueck * ($bestand->betrieb->aktien_kurs ?? 0);
+                $avgKauf         = $bestand->kind->avgKaufKurs($bestand->buisness_id);
+                $auszahlungsKurs = ($avgKauf > 0 && $avgKauf < $minKurs)
+                    ? $avgKauf
+                    : ($bestand->betrieb->aktien_kurs ?? 0);
+                $betrag = $bestand->stueck * $auszahlungsKurs;
                 if ($betrag <= 0) {
                     $bestand->update(['stueck' => 0]);
                     continue;
@@ -283,7 +306,7 @@ class AdminBoerseController extends Controller
                     'buisness_id'  => $bestand->buisness_id,
                     'typ'          => 'abschluss',
                     'stueck'       => $bestand->stueck,
-                    'kurs'         => $bestand->betrieb->aktien_kurs ?? 0,
+                    'kurs'         => $auszahlungsKurs,
                     'summe'        => $betrag,
                     'boerse_rolle' => 'admin',
                     'notiz'        => 'Schlussabrechnung',
@@ -307,7 +330,7 @@ class AdminBoerseController extends Controller
                 $payBetrieb = Payment::create([
                     'customer_id' => $bestand->buisness_id,
                     'amount'      => -$betrag,
-                    'comment'     => "Schlussabrechnung Börse: {$bestand->stueck} Anteile à {$bestand->betrieb->aktien_kurs} Radi an {$bestand->kind->name}",
+                    'comment'     => "Schlussabrechnung Börse: {$bestand->stueck} Anteile à {$auszahlungsKurs} Radi an {$bestand->kind->name}",
                     'payment_id'  => $payBoerse->id,
                     'user_id'     => auth()->id() ?? 1,
                 ]);
