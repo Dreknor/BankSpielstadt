@@ -61,14 +61,25 @@ class BoerseHandelController extends Controller
         $spread     = (int) config('bank.aktien.verkauf_spread', 1);
         $normalKurs = max($minKurs, (int) $customer->aktien_kurs - $spread);
 
-        $result = $query->limit(20)->get()->map(function ($b) use ($normalKurs) {
-            $avgKauf     = $b->kind ? $b->kind->avgKaufKurs($b->buisness_id) : 0;
-            $verkaufKurs = ($avgKauf > 0 && $avgKauf < $normalKurs) ? $avgKauf : $normalKurs;
+        $result = $query->limit(20)->get()->map(function ($b) use ($normalKurs, $minKurs) {
+            if (!$b->kind) {
+                return [
+                    'id'            => $b->customer_id,
+                    'name'          => '—',
+                    'stueck'        => $b->stueck,
+                    'verkauf_kurs'  => $normalKurs,
+                    'billig_stueck' => 0,
+                    'billig_kurs'   => 0,
+                ];
+            }
+            $split = $b->kind->kaufPreisSplit($b->buisness_id, $minKurs);
             return [
-                'id'           => $b->customer_id,
-                'name'         => $b->kind?->name ?? '—',
-                'stueck'       => $b->stueck,
-                'verkauf_kurs' => $verkaufKurs,
+                'id'            => $b->customer_id,
+                'name'          => $b->kind->name,
+                'stueck'        => $b->stueck,
+                'verkauf_kurs'  => $normalKurs,          // Kurs für normal eingekaufte Anteile
+                'billig_stueck' => $split['billig']['stueck'],  // Anzahl billig eingekaufter Anteile
+                'billig_kurs'   => $split['billig']['avg_kurs'], // Ø Kaufkurs dieser Anteile
             ];
         });
         return response()->json($result);
@@ -287,18 +298,28 @@ class BoerseHandelController extends Controller
 
                 // (A) Verkaufs-Spread: Börse zahlt pro Anteil `spread` Radi unter Kurs
                 //     aus (nie unter Mindestkurs). Killt das Sofort-Arbitrage.
-                $kurs        = (int) $betrieb->aktien_kurs;
-                $normalKurs  = max($minKurs, $kurs - $spread);
+                $kurs       = (int) $betrieb->aktien_kurs;
+                $normalKurs = max($minKurs, $kurs - $spread);
 
-                // (B) Einkaufspreis-Cap: Wer Anteile zu einem günstigeren Kurs als
-                //     den aktuellen Mindestkurs gekauft hat, bekommt beim Verkauf
-                //     höchstens seinen Einkaufspreis zurück — kein Windfall-Gewinn
-                //     durch künstlich angehobene Kursuntergrenze.
-                $avgKauf     = $kind->avgKaufKurs($betrieb->id);
-                $verkaufKurs = ($avgKauf > 0 && $avgKauf < $normalKurs)
-                    ? $avgKauf
-                    : $normalKurs;
-                $summe       = $stueck * $verkaufKurs;
+                // (B) FIFO-Split: Anteile, die UNTER dem Mindestpreis eingekauft wurden,
+                //     werden zum Einkaufspreis abgerechnet. Anteile die zum Mindestpreis
+                //     oder darüber eingekauft wurden, erhalten den normalen Verkaufskurs.
+                //     FIFO stellt sicher, dass bereits verkaufte Billig-Anteile nicht
+                //     mehr den Preis aktueller Anteile kontaminieren.
+                $split            = $kind->kaufPreisSplit($betrieb->id, $minKurs);
+                $billigVerfuegbar = $split['billig']['stueck'];
+                $billigAvgKurs    = $split['billig']['avg_kurs'];
+
+                // FIFO: zuerst billig eingekaufte Anteile verkaufen
+                $billigVerkauft = min($stueck, $billigVerfuegbar);
+                $normalVerkauft = $stueck - $billigVerkauft;
+
+                $summeBillig = $billigVerkauft * $billigAvgKurs;
+                $summeNormal = $normalVerkauft * $normalKurs;
+                $summe       = $summeBillig + $summeNormal;
+
+                // Gewichteter Durchschnitt für die Transaktionsaufzeichnung
+                $verkaufKurs = $stueck > 0 ? (int) round($summe / $stueck) : $normalKurs;
 
                 $kassenstand = BoerseKasse::kassenstand();
                 if ($kassenstand < $summe) {
@@ -311,6 +332,17 @@ class BoerseHandelController extends Controller
                         "Das Konto von {$betrieb->name} hat nicht genug Radi ({$betrieb->balance} Radi), um die Anteile zurückzukaufen!");
                 }
 
+                // Notiz für die Transaktion
+                if ($billigVerkauft > 0 && $normalVerkauft > 0) {
+                    $notiz = "{$billigVerkauft}× {$billigAvgKurs} Radi (unter Mindestpreis) + {$normalVerkauft}× {$normalKurs} Radi (Kurs {$kurs}−{$spread} Spread)";
+                } elseif ($billigVerkauft > 0) {
+                    $notiz = "Verkaufskurs {$billigAvgKurs} Radi — unter Mindestpreis eingekauft";
+                } elseif ($spread > 0) {
+                    $notiz = "Verkaufskurs {$normalKurs} Radi (Kurs {$kurs} − {$spread} Spread)";
+                } else {
+                    $notiz = null;
+                }
+
                 $transaktion = AktienTransaktion::create([
                     'customer_id' => $kind->id,
                     'buisness_id' => $betrieb->id,
@@ -319,7 +351,7 @@ class BoerseHandelController extends Controller
                     'kurs'        => $verkaufKurs,
                     'summe'       => $summe,
                     'boerse_rolle'=> 'haendler',
-                    'notiz'       => $spread > 0 ? "Verkaufskurs {$verkaufKurs} (Kurs {$kurs} − {$spread} Spread)" : null,
+                    'notiz'       => $notiz,
                 ]);
 
                 // Bargeld-Tracking: Bargeld verlässt physisch die Kasse
@@ -349,17 +381,28 @@ class BoerseHandelController extends Controller
                 $bestand->decrement('stueck', $stueck);
 
                 $ergebnis = ['summe' => $summe, 'kurs' => $kurs, 'verkaufKurs' => $verkaufKurs,
-                            'durch_einkauf_gedeckelt' => ($avgKauf > 0 && $avgKauf < $normalKurs)];
+                            'billigVerkauft' => $billigVerkauft, 'normalVerkauft' => $normalVerkauft,
+                            'billigAvgKurs'  => $billigAvgKurs, 'normalKurs' => $normalKurs,
+                            'durch_einkauf_gedeckelt' => $billigVerkauft > 0];
             });
         } catch (BoerseException $e) {
             return back()->with(['type' => 'error', 'Meldung' => $e->getMessage()]);
         }
 
-        $summe    = $ergebnis['summe'];
-        $vk       = $ergebnis['verkaufKurs'];
-        $kursAkt  = $ergebnis['kurs'];
+        $summe       = $ergebnis['summe'];
+        $vk          = $ergebnis['verkaufKurs'];
+        $kursAkt     = $ergebnis['kurs'];
+        $billigVk    = $ergebnis['billigVerkauft'];
+        $normalVk    = $ergebnis['normalVerkauft'];
+        $billigKursVk = $ergebnis['billigAvgKurs'];
+        $normalKursVk = $ergebnis['normalKurs'];
+
         if ($ergebnis['durch_einkauf_gedeckelt'] ?? false) {
-            $spreadInfo = " (Verkaufskurs {$vk} Radi — gedeckelt auf Einkaufspreis)";
+            if ($normalVk > 0) {
+                $spreadInfo = " ({$billigVk}× {$billigKursVk} Radi unter Mindestpreis + {$normalVk}× {$normalKursVk} Radi)";
+            } else {
+                $spreadInfo = " (Verkaufskurs {$billigKursVk} Radi — unter Mindestpreis eingekauft)";
+            }
         } elseif ($spread > 0) {
             $spreadInfo = " (Verkaufskurs {$vk} Radi · {$spread} Radi Spread je Anteil)";
         } else {

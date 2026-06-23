@@ -22,9 +22,7 @@
         </div>
         <div class="bg-sky-50 border-2 border-sky-200 rounded-xl p-4 text-lg">
             💵 Das Kind bekommt <b id="aus">–</b> bar ausgezahlt.
-            <div id="kurs-hinweis" class="hidden mt-1 text-sm text-amber-700 font-semibold">
-                ⚠️ Auszahlung zum Einkaufspreis (<span id="kurs-hinweis-wert"></span> Radi/Anteil), da dieser unter dem Mindestpreis lag.
-            </div>
+            <div id="kurs-hinweis" class="hidden mt-1 text-sm text-amber-700 font-semibold"></div>
         </div>
         <div class="flex gap-2">
             <button class="bg-sky-500 hover:bg-sky-600 text-white text-xl font-bold px-6 py-3 rounded-xl shadow-kid">
@@ -39,37 +37,66 @@
 <script>
 (function () {
     const kursDefault = {{ $customer->aktien_kurs }};
-    const minKurs     = {{ (int) config('bank.aktien.min_kurs', 4) }};
-    let kursJeAnteil  = null; // null = noch kein Kind gewählt
 
-    const stueckIn    = document.getElementById('verkKind-stueck');
-    const ausEl       = document.getElementById('aus');
-    const hinweisEl   = document.getElementById('kurs-hinweis');
-    const hinweisWert = document.getElementById('kurs-hinweis-wert');
+    // Aktuell gewähltes Kind (null = kein Kind gewählt)
+    let normalKurs   = null;
+    let billigStueck = 0;
+    let billigKurs   = 0;
+
+    const stueckIn  = document.getElementById('verkKind-stueck');
+    const ausEl     = document.getElementById('aus');
+    const hinweisEl = document.getElementById('kurs-hinweis');
 
     function updateAuszahlung() {
-        if (kursJeAnteil === null) {
+        if (normalKurs === null) {
             ausEl.innerText = '–';
             hinweisEl.classList.add('hidden');
+            hinweisEl.innerHTML = '';
             return;
         }
         const stueck = parseInt(stueckIn?.value || 0);
-        ausEl.innerText = (stueck * kursJeAnteil) + ' Radi';
-        if (kursJeAnteil < minKurs) {
+        if (stueck <= 0) {
+            ausEl.innerText = '0 Radi';
+            hinweisEl.classList.add('hidden');
+            return;
+        }
+
+        // FIFO: zuerst billig eingekaufte Anteile, dann normale
+        const billigVerkauft = Math.min(stueck, billigStueck);
+        const normalVerkauft = stueck - billigVerkauft;
+        const summe = (billigVerkauft * billigKurs) + (normalVerkauft * normalKurs);
+
+        ausEl.innerText = summe + ' Radi';
+
+        if (billigVerkauft > 0) {
             hinweisEl.classList.remove('hidden');
-            hinweisWert.innerText = kursJeAnteil;
+            if (normalVerkauft > 0) {
+                hinweisEl.innerHTML =
+                    '⚠️ Gemischter Verkauf: '
+                    + billigVerkauft + '× <b>' + billigKurs + ' Radi</b> (unter Mindestpreis eingekauft) '
+                    + '+ ' + normalVerkauft + '× <b>' + normalKurs + ' Radi</b>';
+            } else {
+                hinweisEl.innerHTML =
+                    '⚠️ Auszahlung zum Einkaufspreis (<b>' + billigKurs + ' Radi/Anteil</b>), '
+                    + 'da unter dem Mindestpreis eingekauft.';
+            }
         } else {
             hinweisEl.classList.add('hidden');
+            hinweisEl.innerHTML = '';
         }
     }
 
     document.getElementById('verkKind-id').addEventListener('kindGewaehlt', function (e) {
-        kursJeAnteil = e.detail.verkauf_kurs ?? kursDefault;
+        normalKurs   = e.detail.verkauf_kurs   ?? kursDefault;
+        billigStueck = e.detail.billig_stueck  ?? 0;
+        billigKurs   = e.detail.billig_kurs    ?? 0;
         updateAuszahlung();
     });
 
     document.getElementById('verkKind-id').addEventListener('kindGeleert', function () {
-        kursJeAnteil = null;
+        normalKurs   = null;
+        billigStueck = 0;
+        billigKurs   = 0;
         updateAuszahlung();
     });
 

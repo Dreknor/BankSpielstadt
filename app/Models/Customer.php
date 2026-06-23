@@ -169,8 +169,9 @@ class Customer extends Model
 
     /**
      * Gewichteter Durchschnittskaufkurs dieses Kunden für einen bestimmten Betrieb.
-     * Basis: alle nicht-gelöschten Kauf-Transaktionen.
-     * Wird beim Verkauf als Preisdeckel verwendet (kein Gewinn über Einkaufspreis).
+     * Basis: alle nicht-gelöschten Kauf-Transaktionen (inkl. bereits verkaufter Anteile).
+     * Wird für Legacy-Auswertungen genutzt. Für die Verkaufspreisberechnung
+     * bitte kaufPreisSplit() verwenden.
      */
     public function avgKaufKurs(int $buisnessId): int
     {
@@ -185,6 +186,83 @@ class Customer extends Model
             return 0;
         }
         return (int) ceil($row->total_summe / $row->total_stueck);
+    }
+
+    /**
+     * FIFO-basierter Split der aktuell gehaltenen Anteile nach Kaufpreis.
+     *
+     * Anteile, die UNTER dem Mindestpreis eingekauft wurden (billig), werden beim
+     * Verkauf zum Einkaufspreis abgerechnet. Anteile zum Mindestpreis oder darüber
+     * (normal) werden zum aktuellen Verkaufskurs abgerechnet.
+     *
+     * FIFO: Bereits getätigte Verkäufe werden von den ältesten Käufen abgezogen,
+     * sodass nur die tatsächlich noch gehaltenen Anteile bewertet werden.
+     * Das verhindert, dass längst verkaufte Billig-Käufe den Preis aktueller
+     * Anteile kontaminieren.
+     *
+     * @param  int  $buisnessId  Betrieb-ID
+     * @param  int  $minKurs     Mindestpreis (Grenze billig / normal)
+     * @return array{billig: array{stueck: int, avg_kurs: int}, normal: array{stueck: int, avg_kurs: int}}
+     */
+    public function kaufPreisSplit(int $buisnessId, int $minKurs): array
+    {
+        // Alle Käufe chronologisch (FIFO: älteste zuerst)
+        $kaeufe = AktienTransaktion::where('customer_id', $this->id)
+            ->where('buisness_id', $buisnessId)
+            ->whereNull('deleted_at')
+            ->where('typ', 'kauf')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get(['stueck', 'kurs']);
+
+        // Bereits verkaufte Anteile (werden FIFO von den ältesten Käufen abgezogen)
+        $bereitsVerkauft = (int) AktienTransaktion::where('customer_id', $this->id)
+            ->where('buisness_id', $buisnessId)
+            ->whereNull('deleted_at')
+            ->whereIn('typ', ['verkauf', 'rueckkauf'])
+            ->sum('stueck');
+
+        // FIFO: älteste Chargen zuerst gegen Verkäufe verrechnen
+        $restZuAbziehen  = $bereitsVerkauft;
+        $aktuelleChargen = [];
+
+        foreach ($kaeufe as $kauf) {
+            if ($restZuAbziehen <= 0) {
+                $aktuelleChargen[] = ['stueck' => (int) $kauf->stueck, 'kurs' => (int) $kauf->kurs];
+            } elseif ($restZuAbziehen >= $kauf->stueck) {
+                $restZuAbziehen -= $kauf->stueck;
+            } else {
+                $aktuelleChargen[] = [
+                    'stueck' => (int) $kauf->stueck - $restZuAbziehen,
+                    'kurs'   => (int) $kauf->kurs,
+                ];
+                $restZuAbziehen = 0;
+            }
+        }
+
+        $billigStueck = 0; $billigSumme = 0;
+        $normalStueck = 0; $normalSumme = 0;
+
+        foreach ($aktuelleChargen as $charge) {
+            if ($charge['kurs'] < $minKurs) {
+                $billigStueck += $charge['stueck'];
+                $billigSumme  += $charge['stueck'] * $charge['kurs'];
+            } else {
+                $normalStueck += $charge['stueck'];
+                $normalSumme  += $charge['stueck'] * $charge['kurs'];
+            }
+        }
+
+        return [
+            'billig' => [
+                'stueck'   => $billigStueck,
+                'avg_kurs' => $billigStueck > 0 ? (int) ceil($billigSumme / $billigStueck) : 0,
+            ],
+            'normal' => [
+                'stueck'   => $normalStueck,
+                'avg_kurs' => $normalStueck > 0 ? (int) ceil($normalSumme / $normalStueck) : 0,
+            ],
+        ];
     }
 
     public function isFotostudio(): bool

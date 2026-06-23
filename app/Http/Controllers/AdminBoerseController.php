@@ -232,11 +232,11 @@ class AdminBoerseController extends Controller
             ->with(['betrieb', 'kind'])
             ->get()
             ->sum(function ($b) use ($minKurs) {
-                $avgKauf = $b->kind->avgKaufKurs($b->buisness_id);
-                $kurs    = ($avgKauf > 0 && $avgKauf < $minKurs)
-                    ? $avgKauf
-                    : ($b->betrieb->aktien_kurs ?? 0);
-                return $b->stueck * $kurs;
+                if (!$b->kind || !$b->betrieb) return 0;
+                $betriebKurs = $b->betrieb->aktien_kurs ?? 0;
+                $split       = $b->kind->kaufPreisSplit($b->buisness_id, $minKurs);
+                return ($split['billig']['stueck'] * $split['billig']['avg_kurs'])
+                     + ($split['normal']['stueck'] * $betriebKurs);
             });
         return view('admin.boerse.abschluss',
             compact('betriebe', 'kassenstand', 'gesamtAuszahlung'));
@@ -248,11 +248,11 @@ class AdminBoerseController extends Controller
         $bestaende        = AktienBestand::where('stueck', '>', 0)->with(['kind', 'betrieb'])->get();
         $minKurs          = (int) config('bank.aktien.min_kurs', 4);
         $gesamtAuszahlung = $bestaende->sum(function ($b) use ($minKurs) {
-            $avgKauf = $b->kind->avgKaufKurs($b->buisness_id);
-            $kurs    = ($avgKauf > 0 && $avgKauf < $minKurs)
-                ? $avgKauf
-                : ($b->betrieb->aktien_kurs ?? 0);
-            return $b->stueck * $kurs;
+            if (!$b->kind || !$b->betrieb) return 0;
+            $betriebKurs = $b->betrieb->aktien_kurs ?? 0;
+            $split       = $b->kind->kaufPreisSplit($b->buisness_id, $minKurs);
+            return ($split['billig']['stueck'] * $split['billig']['avg_kurs'])
+                 + ($split['normal']['stueck'] * $betriebKurs);
         });
 
         // Börsen-Konto muss eingerichtet sein
@@ -273,11 +273,11 @@ class AdminBoerseController extends Controller
             ->filter(function ($gruppe) use ($minKurs) {
                 $betrieb   = $gruppe->first()->betrieb;
                 $benoetigt = $gruppe->sum(function ($b) use ($minKurs) {
-                    $avgKauf = $b->kind->avgKaufKurs($b->buisness_id);
-                    $kurs    = ($avgKauf > 0 && $avgKauf < $minKurs)
-                        ? $avgKauf
-                        : ($b->betrieb->aktien_kurs ?? 0);
-                    return $b->stueck * $kurs;
+                    if (!$b->kind || !$b->betrieb) return 0;
+                    $betriebKurs = $b->betrieb->aktien_kurs ?? 0;
+                    $split       = $b->kind->kaufPreisSplit($b->buisness_id, $minKurs);
+                    return ($split['billig']['stueck'] * $split['billig']['avg_kurs'])
+                         + ($split['normal']['stueck'] * $betriebKurs);
                 });
                 return $betrieb->balance < $benoetigt;
             });
@@ -291,14 +291,28 @@ class AdminBoerseController extends Controller
         DB::transaction(function () use ($boerse, $minKurs) {
             $bestaende = AktienBestand::where('stueck', '>', 0)->with(['kind', 'betrieb'])->get();
             foreach ($bestaende as $bestand) {
-                $avgKauf         = $bestand->kind->avgKaufKurs($bestand->buisness_id);
-                $auszahlungsKurs = ($avgKauf > 0 && $avgKauf < $minKurs)
-                    ? $avgKauf
-                    : ($bestand->betrieb->aktien_kurs ?? 0);
-                $betrag = $bestand->stueck * $auszahlungsKurs;
+                $betriebKurs = $bestand->betrieb->aktien_kurs ?? 0;
+                $split       = $bestand->kind->kaufPreisSplit($bestand->buisness_id, $minKurs);
+
+                // FIFO-Split: billig eingekaufte Anteile zum Einkaufspreis, normale zum Betriebskurs
+                $billigStueck = min($bestand->stueck, $split['billig']['stueck']);
+                $normalStueck = $bestand->stueck - $billigStueck;
+                $billigKurs   = $split['billig']['avg_kurs'];
+
+                $betrag          = ($billigStueck * $billigKurs) + ($normalStueck * $betriebKurs);
+                $auszahlungsKurs = $bestand->stueck > 0 ? (int) round($betrag / $bestand->stueck) : 0;
+
                 if ($betrag <= 0) {
                     $bestand->update(['stueck' => 0]);
                     continue;
+                }
+
+                // Notiz für gemischte Auszahlung
+                $notiz = 'Schlussabrechnung';
+                if ($billigStueck > 0 && $normalStueck > 0) {
+                    $notiz = "Schlussabrechnung: {$billigStueck}× {$billigKurs} Radi (unter Mindestpreis) + {$normalStueck}× {$betriebKurs} Radi";
+                } elseif ($billigStueck > 0) {
+                    $notiz = "Schlussabrechnung: unter Mindestpreis eingekauft ({$billigKurs} Radi/Anteil)";
                 }
 
                 AktienTransaktion::create([
@@ -309,7 +323,7 @@ class AdminBoerseController extends Controller
                     'kurs'         => $auszahlungsKurs,
                     'summe'        => $betrag,
                     'boerse_rolle' => 'admin',
-                    'notiz'        => 'Schlussabrechnung',
+                    'notiz'        => $notiz,
                 ]);
 
                 // Börsen-Kasse zahlt Bargeld an das Kind aus
