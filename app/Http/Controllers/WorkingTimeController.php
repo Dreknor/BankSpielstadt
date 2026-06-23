@@ -69,11 +69,12 @@ class WorkingTimeController extends Controller
         $customer = session('customer');
 
         $startdate = Carbon::today()->startOfWeek();
-        $start_working = $startdate->copy()->addDays($request->day);
+        // startOfWeek() ist bereits Montag (dayOfWeek=1), daher -1 damit Montag→0 Tage addiert
+        $start_working = $startdate->copy()->addDays($request->day - 1);
         $start_working->setHour($request->start_hour);
         $start_working->setMinutes($request->start_minute);
 
-        $end_working = $startdate->copy()->addDays($request->day);
+        $end_working = $startdate->copy()->addDays($request->day - 1);
         $end_working->setHour($request->end_hour);
         $end_working->setMinutes($request->end_minute);
 
