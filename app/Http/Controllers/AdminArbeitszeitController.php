@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Payment;
 use App\Models\WorkingTime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminArbeitszeitController extends Controller
 {
@@ -105,5 +107,100 @@ class AdminArbeitszeitController extends Controller
             'gesamtRestMin' => $gesamtMinuten % 60,
         ]);
     }
-}
 
+    /**
+     * Bearbeitungsformular für einen einzelnen Eintrag (Admin).
+     */
+    public function editForm(Customer $customer, WorkingTime $wt)
+    {
+        $betriebe = Customer::query()->buisness()->get();
+        return view('admin.arbeitszeiten.edit', compact('customer', 'wt', 'betriebe'));
+    }
+
+    /**
+     * Speichert die Korrektur: löscht alte Zahlungen, erstellt neue.
+     */
+    public function update(Request $request, Customer $customer, WorkingTime $wt)
+    {
+        $request->validate([
+            'start_hour'   => 'required|integer|min:0|max:23',
+            'start_minute' => 'required|integer|min:0|max:59',
+            'end_hour'     => 'required|integer|min:0|max:23',
+            'end_minute'   => 'required|integer|min:0|max:59',
+            'buisness_id'  => 'required|integer|exists:customers,id',
+            'manager'      => 'required|integer|min:0|max:1',
+        ]);
+
+        $neuerLohn = 0;
+
+        DB::transaction(function () use ($request, $customer, $wt, &$neuerLohn) {
+            $start   = $wt->start->copy()->setHour($request->start_hour)->setMinute($request->start_minute)->setSecond(0);
+            $end     = $wt->start->copy()->setHour($request->end_hour)->setMinute($request->end_minute)->setSecond(0);
+            $betrieb = Customer::findOrFail($request->buisness_id);
+
+            $dauer   = max(0, $start->diffInMinutes($end));
+            $StdLohn = $request->manager == 1
+                ? (int) config('bank.lohn.chef', 7)
+                : (int) config('bank.lohn.mitarbeiter', 6);
+            $neuerLohn = (int) floor(($dauer / 60) * $StdLohn);
+
+            // Alte Zahlungen soft-löschen
+            if ($wt->payment_customer) {
+                $wt->payment_customer->delete();
+            }
+            if ($wt->payment_buisness) {
+                $wt->payment_buisness->delete();
+            }
+
+            // Neue Zahlungen anlegen
+            $payBetrieb = Payment::create([
+                'customer_id' => $betrieb->id,
+                'amount'      => -$neuerLohn,
+                'comment'     => "Lohn (Admin-Korr.): {$customer->name} ({$start->format('d.m.Y H:i')}–{$end->format('H:i')})",
+                'user_id'     => auth()->id() ?? 1,
+            ]);
+            $payCustomer = Payment::create([
+                'customer_id' => $customer->id,
+                'amount'      => $neuerLohn,
+                'source_id'   => $betrieb->id,
+                'comment'     => "Lohn (Admin-Korr.): {$betrieb->name} ({$start->format('d.m.Y H:i')}–{$end->format('H:i')})",
+                'user_id'     => auth()->id() ?? 1,
+                'payment_id'  => $payBetrieb->id,
+            ]);
+            $payBetrieb->update(['payment_id' => $payCustomer->id]);
+
+            // Arbeitszeit aktualisieren
+            $wt->update([
+                'start'            => $start,
+                'end'              => $end,
+                'is_manager'       => $request->manager,
+                'buisness_id'      => $betrieb->id,
+                'payment_customer' => $payCustomer->id,
+                'payment_buisness' => $payBetrieb->id,
+                'user_id'          => auth()->id() ?? 1,
+            ]);
+        });
+
+        return redirect()->route('admin.arbeitszeiten.person', $customer)
+            ->with(['type' => 'success', 'Meldung' => "Arbeitszeit korrigiert. Neuer Lohn: {$neuerLohn} Radi."]);
+    }
+
+    /**
+     * Löscht einen Arbeitszeit-Eintrag inkl. zugehöriger Zahlungen (Admin).
+     */
+    public function destroy(Customer $customer, WorkingTime $wt)
+    {
+        DB::transaction(function () use ($wt) {
+            if ($wt->payment_customer) {
+                $wt->payment_customer->delete();
+            }
+            if ($wt->payment_buisness) {
+                $wt->payment_buisness->delete();
+            }
+            $wt->delete();
+        });
+
+        return redirect()->route('admin.arbeitszeiten.person', $customer)
+            ->with(['type' => 'warning', 'Meldung' => 'Arbeitszeit-Eintrag wurde gelöscht.']);
+    }
+}

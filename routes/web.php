@@ -101,6 +101,9 @@ Route::middleware(['auth'])->group(function (){
         // Arbeitszeit-Auswertung
         Route::get('admin/arbeitszeiten', [AdminArbeitszeitController::class, 'index'])->name('admin.arbeitszeiten');
         Route::get('admin/arbeitszeiten/{customer}', [AdminArbeitszeitController::class, 'person'])->name('admin.arbeitszeiten.person');
+        Route::get('admin/arbeitszeiten/{customer}/eintrag/{wt}/edit', [AdminArbeitszeitController::class, 'editForm'])->name('admin.arbeitszeiten.edit');
+        Route::put('admin/arbeitszeiten/{customer}/eintrag/{wt}', [AdminArbeitszeitController::class, 'update'])->name('admin.arbeitszeiten.update');
+        Route::delete('admin/arbeitszeiten/{customer}/eintrag/{wt}', [AdminArbeitszeitController::class, 'destroy'])->name('admin.arbeitszeiten.destroy');
     });
 
     // Push-Benachrichtigungen (alle eingeloggten User)

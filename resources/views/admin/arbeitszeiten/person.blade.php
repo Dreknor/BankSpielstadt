@@ -84,6 +84,7 @@
                                 <th class="px-4 py-2">Bis</th>
                                 <th class="px-4 py-2">Dauer</th>
                                 <th class="px-4 py-2">Rolle</th>
+                                <th class="px-4 py-2"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -112,6 +113,23 @@
                                         @else
                                             <span class="bg-sky-100 text-sky-700 text-xs font-bold px-2 py-1 rounded-full">Mitarbeiter</span>
                                         @endif
+                                    </td>
+                                    <td class="px-4 py-2 text-right whitespace-nowrap">
+                                        <a href="{{ route('admin.arbeitszeiten.edit', [$customer, $eintrag]) }}"
+                                           class="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 transition mr-1">
+                                            <i class="fa-solid fa-pen-to-square"></i> Korrigieren
+                                        </a>
+                                        <form method="POST"
+                                              action="{{ route('admin.arbeitszeiten.destroy', [$customer, $eintrag]) }}"
+                                              class="inline"
+                                              onsubmit="return confirm('Eintrag wirklich löschen? Die zugehörigen Zahlungen werden ebenfalls rückgängig gemacht.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg bg-rose-100 text-rose-700 hover:bg-rose-200 transition">
+                                                <i class="fa-solid fa-trash"></i> Löschen
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             @endforeach
