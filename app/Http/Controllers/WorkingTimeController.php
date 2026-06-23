@@ -130,27 +130,6 @@ class WorkingTimeController extends Controller
             ]);
         }
 
-        //Check Arbeitszeiten
-        $working_times = $customer->working_times()
-            ->where(function($query) use ($start_working,$end_working, $customer){
-                $query->where('start', '<=', $start_working);
-                $query->where('end', '>=', $start_working);
-                $query->where('customer_id', '=', $customer->id);
-            })
-            ->orWhere(function($query) use ($start_working,$end_working, $customer){
-                $query->where('start', '<=', $end_working);
-                $query->where('end', '>=', $end_working);
-                $query->where('customer_id', '=', $customer->id);
-
-            })
-            ->count();
-
-        if ($working_times > 0){
-            return redirect()->back()->withInput()->with([
-                'type' => 'danger',
-                'Meldung' => "Es gibt bereits eine Arbeitszeit während dieses Zeitraumes. Der Arbeiter kann nicht an 2 Stellen gleichzeitig gearbeitet haben."
-            ]);
-        }
 
         $payment_buisness = new Payment([
             'customer_id' => $buisness->id,
