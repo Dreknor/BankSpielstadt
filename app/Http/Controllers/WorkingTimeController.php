@@ -86,8 +86,10 @@ class WorkingTimeController extends Controller
             ]);
         }
 
-        // Endzeit darf nicht in der Zukunft liegen (Tag wird berücksichtigt)
-        if ($end_working->greaterThan(Carbon::now())) {
+        // Endzeit darf nicht in der Zukunft liegen – nur für vergangene Tage prüfen,
+        // da der aktuelle Tag aufgrund der UTC-Zeitzone sonst fälschlicherweise abgelehnt wird.
+        $isToday = ((int) $request->day === (int) Carbon::today()->dayOfWeek);
+        if (!$isToday && $end_working->greaterThan(Carbon::now())) {
             return redirect()->back()->withInput()->with([
                 'type' => 'danger',
                 'Meldung' => "Die Endzeit liegt in der Zukunft! Bitte gib nur Zeiten ein, die bereits vergangen sind."
