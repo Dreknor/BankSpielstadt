@@ -42,7 +42,7 @@ class WorkingTimeController extends Controller
         if (!is_null($lastWorking_time)){
             $day = $lastWorking_time->end->dayOfWeek;
         } else {
-            $day = (Carbon::now()->hour > 9)? Carbon::now()->subDay()->dayOfWeek : Carbon::now()->dayOfWeek;
+            $day = Carbon::today()->dayOfWeek;
         }
 
         return view('workingtimes.form',[
