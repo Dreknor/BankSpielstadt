@@ -88,11 +88,27 @@ class WorkingTimeController extends Controller
 
         // Endzeit darf nicht in der Zukunft liegen – nur für vergangene Tage prüfen,
         // da der aktuelle Tag aufgrund der UTC-Zeitzone sonst fälschlicherweise abgelehnt wird.
-        $isToday = ((int) $request->day === (int) Carbon::today()->dayOfWeek);
-        if (!$isToday && $end_working->greaterThan(Carbon::now())) {
+        //$isToday = ((int) $request->day === (int) Carbon::today()->dayOfWeek);
+       // if (!$isToday && $end_working->greaterThan(Carbon::now())) {
+        if ($end_working->greaterThan(Carbon::now())) {
             return redirect()->back()->withInput()->with([
                 'type' => 'danger',
                 'Meldung' => "Die Endzeit liegt in der Zukunft! Bitte gib nur Zeiten ein, die bereits vergangen sind."
+            ]);
+        }
+
+        // Überschneidung mit bestehenden Arbeitszeiten prüfen
+        $ueberschneidung = WorkingTime::where('customer_id', $customer->id)
+            ->where('start', '<', $end_working)
+            ->where('end', '>', $start_working)
+            ->first();
+
+        if ($ueberschneidung !== null) {
+            return redirect()->back()->withInput()->with([
+                'type'    => 'danger',
+                'Meldung' => 'Diese Arbeitszeit überschneidet sich mit einer bereits eingetragenen Zeit ('
+                    . $ueberschneidung->start->format('H:i') . ' – '
+                    . $ueberschneidung->end->format('H:i') . ' Uhr). Bitte korrigiere die Zeiten.',
             ]);
         }
 

@@ -76,8 +76,16 @@
                                 </span>
                                 <span class="font-semibold w-32 truncate">{{ $working_time->buisness->name }}</span>
                                 <span class="text-sm text-slate-500 w-24 truncate">{{ $working_time->user->name }}</span>
-                                <span class="w-10 text-right">
-                                    @if(auth()->user()->is_manager())
+                                <span class="flex items-center gap-1 justify-end shrink-0">
+                                    @if(auth()->user()->is_admin())
+                                        <a href="{{ route('admin.arbeitszeiten.edit', [$customer, $working_time]) }}"
+                                           class="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50"
+                                           title="Arbeitszeit bearbeiten">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                    @endif
+
+                                @if(auth()->user()->is_admin or auth()->user()->is_admin == 1)
                                         <form method="post" action="{{ url('working_times/delete/'.$working_time->id) }}" class="inline">
                                             @csrf
                                             @method('delete')

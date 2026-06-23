@@ -94,7 +94,7 @@ class CustomerController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return view('customer.log', compact('payments', 'working_times', 'aktienTransaktionen'));
+        return view('customer.log', compact('payments', 'working_times', 'aktienTransaktionen', 'customer'));
     }
 
     public function search(Request $request)

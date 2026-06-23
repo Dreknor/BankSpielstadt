@@ -38,6 +38,13 @@
             @csrf
             @method('PUT')
 
+            {{-- Datum --}}
+            <div>
+                <label class="label font-semibold" for="datum">Datum</label>
+                <input type="date" id="datum" name="datum" class="field"
+                       value="{{ old('datum', $wt->start->format('Y-m-d')) }}" required>
+            </div>
+
             {{-- Betrieb --}}
             <div>
                 <label class="label font-semibold" for="buisness_id">Betrieb</label>
@@ -107,7 +114,6 @@
             <div class="rounded-xl bg-amber-50 border border-amber-300 p-3 text-sm text-amber-800">
                 <i class="fa-solid fa-triangle-exclamation mr-1"></i>
                 Die alten Lohn-Zahlungen werden storniert und neu berechnet.
-                Das Datum bleibt unverändert ({{ $wt->start->format('d.m.Y') }}).
             </div>
 
             <button type="submit" class="btn btn-primary w-full text-lg py-3">

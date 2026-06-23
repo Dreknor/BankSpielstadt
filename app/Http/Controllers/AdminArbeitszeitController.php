@@ -123,6 +123,7 @@ class AdminArbeitszeitController extends Controller
     public function update(Request $request, Customer $customer, WorkingTime $wt)
     {
         $request->validate([
+            'datum'        => 'required|date',
             'start_hour'   => 'required|integer|min:0|max:23',
             'start_minute' => 'required|integer|min:0|max:59',
             'end_hour'     => 'required|integer|min:0|max:23',
@@ -133,9 +134,28 @@ class AdminArbeitszeitController extends Controller
 
         $neuerLohn = 0;
 
+        // Überschneidung mit anderen Arbeitszeiten des Kunden prüfen (aktuellen Eintrag ausschließen)
+        $start_check = Carbon::parse($request->datum)->setHour($request->start_hour)->setMinute($request->start_minute)->setSecond(0);
+        $end_check   = Carbon::parse($request->datum)->setHour($request->end_hour)->setMinute($request->end_minute)->setSecond(0);
+
+        $ueberschneidung = WorkingTime::where('customer_id', $customer->id)
+            ->where('id', '!=', $wt->id)
+            ->where('start', '<', $end_check)
+            ->where('end', '>', $start_check)
+            ->first();
+
+        if ($ueberschneidung !== null) {
+            return redirect()->back()->withInput()->with([
+                'type'    => 'danger',
+                'Meldung' => 'Die korrigierte Arbeitszeit überschneidet sich mit einem anderen Eintrag ('
+                    . $ueberschneidung->start->format('H:i') . ' – '
+                    . $ueberschneidung->end->format('H:i') . ' Uhr). Bitte korrigiere die Zeiten.',
+            ]);
+        }
+
         DB::transaction(function () use ($request, $customer, $wt, &$neuerLohn) {
-            $start   = $wt->start->copy()->setHour($request->start_hour)->setMinute($request->start_minute)->setSecond(0);
-            $end     = $wt->start->copy()->setHour($request->end_hour)->setMinute($request->end_minute)->setSecond(0);
+            $start   = Carbon::parse($request->datum)->setHour($request->start_hour)->setMinute($request->start_minute)->setSecond(0);
+            $end     = Carbon::parse($request->datum)->setHour($request->end_hour)->setMinute($request->end_minute)->setSecond(0);
             $betrieb = Customer::findOrFail($request->buisness_id);
 
             $dauer   = max(0, $start->diffInMinutes($end));
