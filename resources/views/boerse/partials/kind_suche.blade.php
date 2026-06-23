@@ -75,6 +75,7 @@
                 stueckIn.dispatchEvent(new Event('input'));
             }
         }
+        hidden.dispatchEvent(new CustomEvent('kindGewaehlt', { detail: item, bubbles: true }));
     }
 
     function clearSelected() {
@@ -84,6 +85,7 @@
         input.value = '';
         input.focus();
         if (maxAttr && stueckIn) stueckIn.removeAttribute('max');
+        hidden.dispatchEvent(new CustomEvent('kindGeleert', { bubbles: true }));
     }
 
     function renderList(items) {

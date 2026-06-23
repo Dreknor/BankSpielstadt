@@ -56,11 +56,21 @@ class BoerseHandelController extends Controller
         if (mb_strlen($q) >= 1) {
             $query->whereHas('kind', fn($w) => $w->where('name', 'LIKE', '%' . $q . '%'));
         }
-        $result = $query->limit(20)->get()->map(fn($b) => [
-            'id'     => $b->customer_id,
-            'name'   => $b->kind?->name ?? '—',
-            'stueck' => $b->stueck,
-        ]);
+
+        $minKurs    = (int) config('bank.aktien.min_kurs', 4);
+        $spread     = (int) config('bank.aktien.verkauf_spread', 1);
+        $normalKurs = max($minKurs, (int) $customer->aktien_kurs - $spread);
+
+        $result = $query->limit(20)->get()->map(function ($b) use ($normalKurs) {
+            $avgKauf     = $b->kind ? $b->kind->avgKaufKurs($b->buisness_id) : 0;
+            $verkaufKurs = ($avgKauf > 0 && $avgKauf < $normalKurs) ? $avgKauf : $normalKurs;
+            return [
+                'id'           => $b->customer_id,
+                'name'         => $b->kind?->name ?? '—',
+                'stueck'       => $b->stueck,
+                'verkauf_kurs' => $verkaufKurs,
+            ];
+        });
         return response()->json($result);
     }
 
