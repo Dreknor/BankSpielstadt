@@ -166,10 +166,10 @@ class AdminArbeitszeitController extends Controller
 
             // Alte Zahlungen soft-löschen
             if ($wt->payment_customer) {
-                $wt->payment_customer->delete();
+                Payment::find($wt->payment_customer)?->delete();
             }
             if ($wt->payment_buisness) {
-                $wt->payment_buisness->delete();
+                Payment::find($wt->payment_buisness)?->delete();
             }
 
             // Neue Zahlungen anlegen
@@ -212,10 +212,10 @@ class AdminArbeitszeitController extends Controller
     {
         DB::transaction(function () use ($wt) {
             if ($wt->payment_customer) {
-                $wt->payment_customer->delete();
+                Payment::find($wt->payment_customer)?->delete();
             }
             if ($wt->payment_buisness) {
-                $wt->payment_buisness->delete();
+                Payment::find($wt->payment_buisness)?->delete();
             }
             $wt->delete();
         });
