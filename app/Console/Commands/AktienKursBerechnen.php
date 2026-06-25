@@ -74,6 +74,14 @@ class AktienKursBerechnen extends Command
             $neuerKurs = max($alterKurs - $maxSprung, min($alterKurs + $maxSprung, $rohKurs));
             $neuerKurs = max($minKurs, $neuerKurs);
 
+
+            if ($neuerKurs > $minKurs + 1) {
+                $randomFactor = rand(-1, 1); // Random value between -1 and 1
+                $neuerKurs += $randomFactor;
+            }
+
+
+
             // ── Speichern ─────────────────────────────────────────────────
             AktienKurs::create([
                 'buisness_id' => $betrieb->id,
